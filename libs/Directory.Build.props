@@ -1,0 +1,93 @@
+<!-- Directory.Build.props for libraries -->
+<Project>
+    <PropertyGroup>
+        <LangVersion>12</LangVersion>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <OutputType>Library</OutputType>
+        <NoWarn>CS1591;CS0649;CS0169;CA1050;CA1822;CA2211;IDE1006</NoWarn>        
+        
+        <!-- Global Version -->
+        <RayPackageVersion>1.0.0-alpha.1</RayPackageVersion>
+        <Version>$(RayPackageVersion)</Version>
+        
+        <!-- Global Packaging Info -->
+        <IsPackable>true</IsPackable>
+        <Authors>Dinko Pavicic</Authors>
+        <Copyright>Copyright (c) Six Technology 2024</Copyright>
+        <RepositoryType>git</RepositoryType>
+        <PackageProjectUrl>https://six-technology.com</PackageProjectUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <PackageIcon>package_icon.png</PackageIcon>
+
+        <!-- 
+        Debug Symbols         
+        It’s important to include debug information in your package for better maintainability and support. 
+        This typically involves setting the correct debug type in your project files.
+        
+        If you wany to embed the PDBs in the package, you can set the DebugType property to 'embedded'.
+        See more: https://github.com/dotnet/sourcelink 
+        -->
+        <DebugType>portable</DebugType>
+
+        <!-- Enable Source Link -->
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+        <!-- Deterministic build -->
+        <Deterministic>true</Deterministic>
+
+
+        <!-- 
+            Uncomment to enable Validation 
+            https://learn.microsoft.com/en-us/dotnet/fundamentals/package-validation/overview       
+            <EnablePackageValidation>true</EnablePackageValidation>
+        
+            Uncomment to validate against some previous package (API changes) 
+            https://docs.microsoft.com/en-us/nuget/reference/msbuild-targets#packagevalidationbaselineversion
+            <PackageValidationBaselineVersion>1.0.0</PackageValidationBaselineVersion>
+        -->
+
+        <!-- 
+            XML Documentation
+            Also turn off warnings for missing documentation 
+        -->
+        <GenerateDocumentationFile>True</GenerateDocumentationFile>
+
+
+        <!--
+            Starting in the .NET 8 SDK, PackRelease defaults to true. For more information, 
+            see 'dotnet pack' uses Release configuration.
+            
+            .NET 7 SDK only: To use PackRelease in a project that's part of a Visual Studio solution, 
+            you must set the environment variable DOTNET_CLI_ENABLE_PACK_RELEASE_FOR_SOLUTIONS to true 
+            (or any other value). For solutions that have many projects, setting this variable 
+            increases the time required to pack.
+        -->
+        <PackRelease>true</PackRelease>
+
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!-- To enable source links on GitHub -->
+        <!-- See: https://github.com/dotnet/sourcelink-->
+        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All"/>        
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="JetBrains.Annotations" Version="2023.3.0"/>
+    </ItemGroup>
+
+    <!--
+        To include the README.md file in the packages
+    -->
+    <ItemGroup Condition="'$(MSBuildProjectExtension)' != '.shproj'">
+        <None Include="README.md" Pack="true" PackagePath="\"/>
+        <None Include="package_icon.png" Pack="true" PackagePath="\"/>
+    </ItemGroup>
+
+</Project>
