@@ -50,7 +50,7 @@ public record SvgResult
   /// </summary>
   /// <param name="comparisonDelegate">The delegate to invoke with the comparison result.</param>
   /// <returns>The current <see cref="SvgResult"/> instance.</returns>
-  public SvgResult GetSizeComparisonInPercentage(Action<double> comparisonDelegate)
+  public SvgResult SizeComparisonInPercentage(Action<double> comparisonDelegate)
   {
     int bytesBefore = OriginalSvg.ToBytes().Length;
     int bytesAfter = ModifiedSvg.ToBytes().Length;
@@ -65,7 +65,7 @@ public record SvgResult
   /// </summary>
   /// <param name="comparisonDelegate">The delegate to invoke with the comparison result.</param>
   /// <returns>The current <see cref="SvgResult"/> instance.</returns>
-  public SvgResult GetSizeComparisonInBytes(Action<int, int> comparisonDelegate)
+  public SvgResult SizeComparisonInBytes(Action<int, int> comparisonDelegate)
   {
     comparisonDelegate(OriginalSvg.ToBytes().Length, ModifiedSvg.ToBytes().Length);
     return this;

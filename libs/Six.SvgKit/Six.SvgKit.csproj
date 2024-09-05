@@ -1,11 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
-        <LangVersion>12</LangVersion>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-        <RootNamespace>Template.Project</RootNamespace>
+        <TargetFrameworks>net7.0;net8.0</TargetFrameworks>
     </PropertyGroup>
+
+    <ItemGroup>
+        <InternalsVisibleTo Include="Six.SvgKit.Test.Unit"/>
+        <InternalsVisibleTo Include="Six.SvgKit.Optimizer.Test.Unit"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="AngleSharp" Version="1.1.2" />
+    </ItemGroup>
 
 </Project>

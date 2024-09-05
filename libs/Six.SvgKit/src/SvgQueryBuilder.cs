@@ -9,9 +9,8 @@ namespace Six.SvgKit;
 public class SvgQueryBuilder
 {
   // MEMBERS
-  readonly Svg
-    _originalSvg; // The original SVG object. The new one is a clone  of this(one on which work will performed).
-
+  // The original SVG object. The new one is a clone  of this(one on which work will performed).
+  readonly Svg _originalSvg;
 
   #region PROPERTIES
 
@@ -62,6 +61,21 @@ public class SvgQueryBuilder
 
 
   /// <summary>
+  /// Applies all pending transformations to the SVG object and resets the 
+  /// selection predicate, allowing for a new set of operations on the modified SVG.
+  /// </summary>
+  /// <returns>The current <see cref="SvgQueryBuilder"/> instance for method chaining.</returns>
+  public SvgQueryBuilder Continue()
+  {
+    // No actual operations needed here as transformations are applied lazily 
+    // when Build() is called. 
+    // We simply reset the Predicate for the next stage.
+    Predicate = _ => true; 
+    return this;
+  }
+  
+  
+  /// <summary>
   /// Selects SVG nodes that match the specified predicate.
   /// </summary>
   /// <example>
@@ -96,60 +110,6 @@ public class SvgQueryBuilder
     var oldPredicate = Predicate;
     Predicate = node => oldPredicate(node) && predicate(node);
     return this;
-  }
-
-
-  /// <summary>
-  /// Creates a conditional branching logic within the query, allowing different builders for true and false conditions.
-  /// </summary>
-  /// <example>
-  /// <code>
-  /// builder
-  ///   .Select(n => n.Name == "rect")
-  ///   .WhereFork(
-  ///     n => int.Parse(n.Attributes.GetValueOrDefault("width", "0")) > 100, // Condition
-  ///   ifTrue:  n => n.SetAttribute("fill", "red"), // Action if true
-  ///   ifFalse: n => n.SetAttribute("fill", "blue")  // Action if false
-  ///   );
-  /// </code>
-  /// </example>
-  /// <param name="condition">The condition to evaluate for branching.</param>
-  /// <param name="ifTrue">The builder to execute if the condition is true.</param>
-  /// <param name="ifFalse">
-  /// The builder to execute if the condition is false.
-  /// If not provided, the false branch will not be executed.
-  /// </param>
-  /// <returns>The current <see cref="SvgQueryBuilder"/> instance with the applied branches.</returns>
-  public SvgQueryBuilder WhereFork(
-    Func<SvgNode, bool> condition,
-    Func<SvgQueryBuilder, SvgQueryBuilder> ifTrue,
-    Func<SvgQueryBuilder, SvgQueryBuilder>? ifFalse = null)
-  {
-    try
-    {
-      // ReSharper disable once ConvertClosureToMethodGroup
-      var trueBuilder = new SvgQueryBuilder(Svg).Select(n => condition(n));
-      var falseBuilder = new SvgQueryBuilder(Svg).Select(n => !condition(n));
-
-      trueBuilder = ifTrue(trueBuilder);
-
-      if(ifFalse != null)
-      {
-        falseBuilder = ifFalse(falseBuilder);
-      }
-
-      // Combine the results of both branches (you might need to adjust this)
-      Predicate = n => trueBuilder.Predicate(n) || falseBuilder.Predicate(n);
-      return this;
-    }
-    catch(Exception ex)
-    {
-      // Error handling logic here
-      Console.WriteLine($"Error in WhereFork: {ex.Message}");
-
-      // Re-throw the exception or handle it as needed
-      throw; // Re-throwing for now, but you can customize error handling
-    }
   }
 
 
@@ -258,6 +218,34 @@ public class SvgQueryBuilder
     return this;
   }
 
+  
+  /// <summary>
+  /// Selects and optionally transforms attributes of the currently selected nodes.
+  /// </summary>
+  /// <param name="predicate">A function that takes an attribute key-value pair and returns a boolean indicating whether the attribute should be selected.</param>
+  /// <param name="transform">An optional function to transform the attribute key and value. If null, the original key-value pairs are kept.</param>
+  /// <returns>The current SvgQueryBuilder instance.</returns>
+  public SvgQueryBuilder SelectAttributes(
+    Func<KeyValuePair<string, string>, bool> predicate,
+    Action<SvgNode, string, string>? transform = null)
+  {
+    ModifyNodes(Ast.Root, node =>
+    {
+      foreach (var attr in node.Attributes.ToArray()) // Iterate over a copy
+      {
+        if (predicate(attr))
+        {
+          if (transform != null)
+          {
+            transform(node, attr.Key, attr.Value);
+          }
+        }
+      }
+    });
+    return this;
+  }
+  
+  
   /// <summary>
   /// Sets an attribute on SVG nodes that match the current predicate.
   /// </summary>
@@ -270,6 +258,7 @@ public class SvgQueryBuilder
     return this;
   }
 
+  
   /// <summary>
   /// Removes an attribute from SVG nodes that match the current predicate.
   /// </summary>
@@ -324,7 +313,7 @@ public class SvgQueryBuilder
   {
     ModifyNodes(Ast.Root, n =>
     {
-      foreach (var attr in attributes)
+      foreach(var attr in attributes)
       {
         n.SetAttribute(attr.Key, attr.Value);
       }
@@ -429,7 +418,7 @@ public class SvgQueryBuilder
     {
       action(node);
     }
-  
+
     foreach(SvgNode child in node.Children)
     {
       ModifyNodes(child, action);

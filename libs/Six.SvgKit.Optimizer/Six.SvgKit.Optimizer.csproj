@@ -1,10 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFrameworks>net7.0;net8.0</TargetFrameworks>
     </PropertyGroup>
 
     <ItemGroup>
+        <InternalsVisibleTo Include="Six.SvgKit.Test.Unit"/>
+        <InternalsVisibleTo Include="Six.SvgKit.Optimizer.Test.Unit"/>
+        
       <ProjectReference Include="..\Six.SvgKit\Six.SvgKit.csproj" />
     </ItemGroup>
 

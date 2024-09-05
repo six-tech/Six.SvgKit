@@ -1,114 +1,14 @@
 <!--
   Metadata:
-    - Project: 
-    - File: CHANGELOG.md
--->
-
-
-<!--
-  Metadata:
-    - Project: 
-    - File: README.md
--->
-# Library
-
-<!--
-  Metadata:
-    - Project: Six.SvgKit.Examples
-    - File: apps\Six.SvgKit.Examples\Program.cs
--->
-```
-using Six.SvgKit;
-using Six.SvgKit.Optimizer;
-
-Console.WriteLine("Create SVG from string and save it to file");
-Console.WriteLine("---------------------------------------------");
-string svgString = @"<svg xmlns=""http://www.w3.org/2000/svg"" viewBox=""0 0 24 24"">
-    <path d=""M0 0h24v24H0V0z"" fill=""none""/>
-    <path d=""M10 10.5h1.5v3H10zM19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM7.5 15H6v-4.5H4.5V9h3v6zm5.5-1c0 .55-.45 1-1 1H9.5c-.55 0-1-.45-1-1v-4c0-.55.45-1 1-1H12c.55 0 1 .45 1 1v4zm6.5 1h-1.75L16 12.75V15h-1.5V9H16v2.25L17.75 9h1.75l-2.25 3 2.25 3z""/>
-</svg>";
-
-Svg
-  .FromString(svgString)
-  .Query()
-  .Build()
-  .ToFile("../../../../test.svg");
-
-
-Console.WriteLine("Create SVG from string and optimize it");
-Console.WriteLine("---------------------------------------------");
-
-Svg
-  .FromString(svgString)
-  .Query()
-  .RemoveEmptyContainers()
-  .RemoveAttribute("viewBox")
-  .Build()
-  .GetSizeComparisonInPercentage(percentage =>
-  {
-    Console.WriteLine($"Percentage of size reduction: {percentage} %");
-  })
-  .GetSizeComparisonInBytes((before, after) =>
-  {
-    Console.WriteLine($"Byte size before: {before}");
-    Console.WriteLine($"Byte size after: {after}");
-  })
-  .ToFile("../../../../test-optimize.svg");
-
-
-Svg
-  .FromString(svgString)
-  .Query()
-  .RemoveXmlDeclaration()
-  .RemoveEmptyContainers()
-  .RemoveViewBoxAttribute()
-  .MergePaths()
-  .Build()
-  .GetSizeComparisonInPercentage(percentage =>
-  {
-    Console.WriteLine($"Percentage of size reduction: {percentage} %");
-  })
-  .GetSizeComparisonInBytes((before, after) =>
-  {
-    Console.WriteLine($"Byte size before: {before}");
-    Console.WriteLine($"Byte size after: {after}");
-  })
-  .ToFile("../../../../test-merge-paths.svg");
-
-
-// To SVG string
-var result = Svg
-  .FromString(svgString)
-  .Query()
-  .MergePaths()
-  .RemoveEmptyContainers()
-  .RemoveViewBoxAttribute()
-  .RemoveNamespace()
-  .Build()
-  .GetSizeComparisonInPercentage(percentage =>
-  {
-    Console.WriteLine($"Percentage of size reduction: {percentage} %");
-  })
-  .GetSizeComparisonInBytes((before, after) =>
-  {
-    Console.WriteLine($"Byte size before: {before}");
-    Console.WriteLine($"Byte size after: {after}");
-  })
-  .ToSvg();
-Console.WriteLine($"SVG string is: {result}");
-```
-
-<!--
-  Metadata:
     - Project: Six.SvgKit
-    - File: libs\Six.SvgKit\README.md
+    - File: Six.SvgKit\README.md
 -->
 # Library
 
 <!--
   Metadata:
     - Project: Six.SvgKit
-    - File: libs\Six.SvgKit\src\Svg.cs
+    - File: Six.SvgKit\src\Svg.cs
 -->
 ```
 using System.Diagnostics.CodeAnalysis;
@@ -311,7 +211,7 @@ public class Svg
 <!--
   Metadata:
     - Project: Six.SvgKit
-    - File: libs\Six.SvgKit\src\SvgAst.cs
+    - File: Six.SvgKit\src\SvgAst.cs
 -->
 ```
 using System.Xml.Linq;
@@ -410,7 +310,7 @@ public class SvgAst
 <!--
   Metadata:
     - Project: Six.SvgKit
-    - File: libs\Six.SvgKit\src\SvgNode.cs
+    - File: Six.SvgKit\src\SvgNode.cs
 -->
 ```
 using System.Xml.Linq;
@@ -464,7 +364,7 @@ public record SvgNode
   /// <summary>
   /// <see cref="Dictionary{TKey,TValue}"/> of node attributes.
   /// </summary>
-  public Dictionary<string, string> Attributes { get; } = [];
+  public Dictionary<string, string> Attributes { get; private set; } = [];
 
   #endregion
 
@@ -515,6 +415,43 @@ public record SvgNode
   {
     Attributes.Remove(key);
   }
+
+  /// <summary>
+  /// Selects and optionally transforms attributes of an SvgNode.
+  /// </summary>
+  /// <param name="predicate">A function that takes an attribute key-value pair and returns a boolean indicating whether the attribute should be selected.</param>
+  /// <param name="transform">An optional function to transform the attribute key and value. If null, the original key-value pairs are kept.</param>
+  /// <returns>The modified SvgNode.</returns>
+  public SvgNode SelectAttributes(
+    Func<KeyValuePair<string, string>, bool> predicate,
+    Func<string, string, (string, string)>? transform = null)
+  {
+    var updatedAttributes = new Dictionary<string, string>();
+
+    foreach(var attr in Attributes)
+    {
+      if(predicate(attr))
+      {
+        if(transform != null)
+        {
+          (string newKey, string newValue) = transform(attr.Key, attr.Value);
+          updatedAttributes[newKey] = newValue;
+        }
+        else
+        {
+          updatedAttributes[attr.Key] = attr.Value;
+        }
+      }
+      else
+      {
+        updatedAttributes[attr.Key] = attr.Value;
+      }
+    }
+
+    Attributes = updatedAttributes;
+    return this;
+  }
+  
 
   /// <summary>
   /// Converts this node and its children to an <see cref="XElement"/>.
@@ -636,7 +573,7 @@ public record SvgNode
 <!--
   Metadata:
     - Project: Six.SvgKit
-    - File: libs\Six.SvgKit\src\SvgQueryBuilder.cs
+    - File: Six.SvgKit\src\SvgQueryBuilder.cs
 -->
 ```
 using JetBrains.Annotations;
@@ -650,11 +587,10 @@ namespace Six.SvgKit;
 public class SvgQueryBuilder
 {
   // MEMBERS
-  readonly Svg _originalSvg; // The original SVG object. The new one is a clone  of this(one on which work will performed).
+  // The original SVG object. The new one is a clone  of this(one on which work will performed).
+  readonly Svg _originalSvg;
 
-  
   #region PROPERTIES
-
 
   /// <summary>
   /// Gets the current SVG object being manipulated.
@@ -672,8 +608,8 @@ public class SvgQueryBuilder
   public Func<SvgNode, bool> Predicate { get; set; }
 
   #endregion
-  
-  
+
+
   // CTOR / DISPOSAL
   // ----------------------------------------------------------------------------------------------------------
 
@@ -701,9 +637,31 @@ public class SvgQueryBuilder
     return new SvgResult(_originalSvg, Svg);
   }
 
+
+  /// <summary>
+  /// Applies all pending transformations to the SVG object and resets the 
+  /// selection predicate, allowing for a new set of operations on the modified SVG.
+  /// </summary>
+  /// <returns>The current <see cref="SvgQueryBuilder"/> instance for method chaining.</returns>
+  public SvgQueryBuilder Continue()
+  {
+    // No actual operations needed here as transformations are applied lazily 
+    // when Build() is called. 
+    // We simply reset the Predicate for the next stage.
+    Predicate = _ => true; 
+    return this;
+  }
+  
+  
   /// <summary>
   /// Selects SVG nodes that match the specified predicate.
   /// </summary>
+  /// <example>
+  /// <code>
+  /// builder
+  ///   .Select(node => node.Name == "rect");
+  /// </code>
+  /// </example>
   /// <param name="predicate">The predicate function to filter SVG nodes.</param>
   /// <returns>The current <see cref="SvgQueryBuilder"/> instance.</returns>
   public SvgQueryBuilder Select(Func<SvgNode, bool> predicate)
@@ -712,9 +670,17 @@ public class SvgQueryBuilder
     return this;
   }
 
+
   /// <summary>
   /// Filters SVG nodes based on the specified predicate.
   /// </summary>
+  /// <example>
+  /// <code>
+  /// builder
+  ///   .Select(node => node.Name == "rect")
+  ///   .Where(node => node.Attributes.ContainsKey("width") &amp;&amp; node.Attributes["width"] == "100");
+  /// </code>
+  /// </example>
   /// <param name="predicate">The predicate function to filter SVG nodes.</param>
   /// <returns>The current <see cref="SvgQueryBuilder"/> instance.</returns>
   public SvgQueryBuilder Where(Func<SvgNode, bool> predicate)
@@ -724,8 +690,104 @@ public class SvgQueryBuilder
     return this;
   }
 
+
   /// <summary>
-  /// Removes SVG nodes that match the current predicate.
+  /// Applies the specified action to each node in the current selection.
+  /// </summary>
+  /// <remarks>Useful for directly modifying node properties.</remarks>
+  /// <example>
+  /// <code>
+  /// builder
+  ///   .Select(n => n.Name == "rect")
+  ///   .Transform(n => n.SetAttribute("transform", "translate(10, 5)"));
+  /// </code>
+  /// </example>
+  /// <param name="action"></param>
+  /// <returns></returns>
+  public SvgQueryBuilder Transform(Action<SvgNode> action)
+  {
+    ModifyNodes(Ast.Root, action);
+    return this;
+  }
+
+
+  /// <summary>
+  /// An alias for Transform to improve readability in certain contexts.
+  /// </summary>
+  /// <param name="action"></param>
+  /// <returns></returns>
+  public SvgQueryBuilder ForEach(Action<SvgNode> action)
+  {
+    return Transform(action);
+  }
+
+  /// <summary>
+  /// Projects each node in the current selection into a sequence of nodes
+  /// and flattens the resulting sequences into one sequence.
+  /// </summary>
+  /// <remarks>
+  /// Useful for working with nested structures or creating new nodes based on existing ones.
+  /// </remarks>
+  /// <example>
+  /// <code>
+  /// builder
+  ///   .Select(n => n.Name == "circle")
+  ///   .SelectMany(n => 
+  ///   {
+  ///     var cx = int.Parse(n.Attributes["cx"]);
+  ///     var cy = int.Parse(n.Attributes["cy"]);
+  ///     var newCircle = new SvgNode(n.Svg, "circle")
+  ///     {
+  ///      Attributes = 
+  ///       {
+  ///         { "cx", (cx + 5).ToString() },
+  ///         { "cy", (cy + 5).ToString() },
+  ///         { "r", "2" },
+  ///         { "fill", "red" }
+  ///       }
+  ///     };
+  ///    return new[] { n, newCircle }; // Return both the original and new circle
+  ///   });
+  /// </code>
+  /// </example>
+  /// <param name="selector"></param>
+  /// <returns></returns>
+  public SvgQueryBuilder SelectMany(Func<SvgNode, IEnumerable<SvgNode>> selector)
+  {
+    var selectedNodes = FindNodes(Ast.Root).SelectMany(selector).ToList();
+    Ast.Root.OnSetChildern(selectedNodes);
+    return this;
+  }
+
+
+  /// <summary>
+  /// Groups the nodes in the current selection based on a key.
+  /// Returns an IEnumerable{IGrouping{TKey}, SvgNode}}, allowing you to work with each group of nodes.
+  /// </summary>
+  /// <example>
+  /// <code>
+  /// var groups = builder
+  ///   .Select(n => n.Name == "path")
+  ///   .GroupBy(n => n.Attributes.GetValueOrDefault("fill"));
+  ///   
+  ///   foreach (var group in groups)
+  ///   {
+  ///     Console.WriteLine($"Fill Color: {group.Key}");
+  ///     // Process nodes within each group
+  ///   }
+  /// </code>
+  /// </example>
+  /// <param name="keySelector"></param>
+  /// <typeparam name="TKey"></typeparam>
+  /// <returns></returns>
+  public IEnumerable<IGrouping<TKey, SvgNode>> GroupBy<TKey>(Func<SvgNode, TKey> keySelector)
+  {
+    return FindNodes(Ast.Root).GroupBy(keySelector);
+  }
+
+
+  /// <summary>
+  /// Removes previously selected SVG nodes.
   /// </summary>
   /// <returns>The current <see cref="SvgQueryBuilder"/> instance.</returns>
   public SvgQueryBuilder RemoveNodes()
@@ -734,6 +796,34 @@ public class SvgQueryBuilder
     return this;
   }
 
+  
+  /// <summary>
+  /// Selects and optionally transforms attributes of the currently selected nodes.
+  /// </summary>
+  /// <param name="predicate">A function that takes an attribute key-value pair and returns a boolean indicating whether the attribute should be selected.</param>
+  /// <param name="transform">An optional function to transform the attribute key and value. If null, the original key-value pairs are kept.</param>
+  /// <returns>The current SvgQueryBuilder instance.</returns>
+  public SvgQueryBuilder SelectAttributes(
+    Func<KeyValuePair<string, string>, bool> predicate,
+    Action<SvgNode, string, string>? transform = null)
+  {
+    ModifyNodes(Ast.Root, node =>
+    {
+      foreach (var attr in node.Attributes.ToArray()) // Iterate over a copy
+      {
+        if (predicate(attr))
+        {
+          if (transform != null)
+          {
+            transform(node, attr.Key, attr.Value);
+          }
+        }
+      }
+    });
+    return this;
+  }
+  
+  
   /// <summary>
   /// Sets an attribute on SVG nodes that match the current predicate.
   /// </summary>
@@ -746,6 +836,7 @@ public class SvgQueryBuilder
     return this;
   }
 
+  
   /// <summary>
   /// Removes an attribute from SVG nodes that match the current predicate.
   /// </summary>
@@ -756,6 +847,130 @@ public class SvgQueryBuilder
     ModifyNodes(Ast.Root, n => n.RemoveAttribute(key));
     return this;
   }
+
+
+  /// <summary>
+  /// Conditionally sets an attribute on nodes that match the predicate.
+  /// </summary>
+  /// <example>
+  /// Set the fill of circles with radius > 10 to "blue"
+  /// <code>
+  /// builder.SetAttributeIf(n => n.Name == "circle" &amp;&amp; int.Parse(n.Attributes.GetValueOrDefault("r", "0")) &gt; 10, "fill", "blue");
+  /// </code>
+  /// </example>
+  /// <param name="predicate"></param>
+  /// <param name="key"></param>
+  /// <param name="value"></param>
+  /// <returns></returns>
+  public SvgQueryBuilder SetAttributeIf(Func<SvgNode, bool> predicate, string key, string value)
+  {
+    ModifyNodes(Ast.Root, n =>
+    {
+      if(predicate(n))
+      {
+        n.SetAttribute(key, value);
+      }
+    });
+    return this;
+  }
+
+
+  /// <summary>
+  /// Sets multiple attributes on all selected SVG nodes.
+  /// </summary>
+  /// <example>
+  /// Set both fill and stroke of selected paths
+  /// <code>
+  /// var newAttributes = new Dictionary&lt;string, string&gt; { { "fill", "yellow" }, { "stroke", "black" } };
+  /// builder.Select(n => n.Name == "path").SetAttributes(newAttributes);
+  /// </code>
+  /// </example>
+  /// <param name="attributes">A dictionary containing the key-value pairs of attributes to set.</param>
+  /// <returns>The current instance of <see cref="SvgQueryBuilder"/> for method chaining.</returns>
+  public SvgQueryBuilder SetAttributes(Dictionary<string, string> attributes)
+  {
+    ModifyNodes(Ast.Root, n =>
+    {
+      foreach(var attr in attributes)
+      {
+        n.SetAttribute(attr.Key, attr.Value);
+      }
+    });
+    return this;
+  }
+
+
+  /// <summary>
+  /// Conditionally removes an attribute from nodes based on the predicate.
+  /// </summary>
+  /// <example>
+  /// Remove the "stroke" attribute from rectangles with no fill
+  /// <code>
+  /// builder.RemoveAttributeIf(n => n.Name == "rect" &amp;&amp; !n.Attributes.ContainsKey("fill"), "stroke");
+  /// </code>
+  /// </example>
+  /// <param name="predicate">The condition that determines which nodes should have the attribute removed.</param>
+  /// <param name="key">The key of the attribute to be removed.</param>
+  /// <returns>An instance of <see cref="SvgQueryBuilder"/> with the specified attribute removed based on the predicate.</returns>
+  public SvgQueryBuilder RemoveAttributeIf(Func<SvgNode, bool> predicate, string key)
+  {
+    ModifyNodes(Ast.Root, n =>
+    {
+      if(predicate(n))
+      {
+        n.RemoveAttribute(key);
+      }
+    });
+    return this;
+  }
+
+
+  /// <summary>
+  /// Filters nodes that have the specified attribute. If value is provided, it also checks for attribute value equality.
+  /// </summary>
+  /// <example>
+  /// Select all elements with the class "highlight"
+  /// <code>
+  /// builder.HasAttribute("class", "highlight");
+  /// </code>
+  /// </example>
+  /// <param name="key">The key of the attribute to filter on.</param>
+  /// <param name="value">The optional value of the attribute to filter on. If null, all nodes with the specified attribute regardless of value will be included.</param>
+  /// <returns>An instance of <see cref="SvgQueryBuilder"/> with the updated predicate.</returns>
+  public SvgQueryBuilder HasAttribute(string key, string? value = null)
+  {
+    var oldPredicate = Predicate;
+    Predicate = node => oldPredicate(node) &&
+                        node.Attributes.ContainsKey(key) &&
+                        (value == null || node.Attributes[key] == value);
+    return this;
+  }
+
+
+  /// <summary>
+  /// TApplies a transformation function to the value of the specified attribute for each selected node.
+  /// </summary>
+  /// <example>
+  /// Increase the font size of all text elements by 2px
+  /// <code>
+  /// builder.Select(n => n.Name == "text").TransformAttribute("font-size", size => (int.Parse(size) + 2) + "px");
+  /// </code>
+  /// </example>
+  /// <param name="key">The key of the attribute to be transformed.</param>
+  /// <param name="transformer">The function that defines the transformation of the attribute value.</param>
+  /// <returns>A reference to this <see cref="SvgQueryBuilder"/> instance after the transformation is applied.</returns>
+  public SvgQueryBuilder TransformAttribute(string key, Func<string, string> transformer)
+  {
+    ModifyNodes(Ast.Root, n =>
+    {
+      if(n.Attributes.ContainsKey(key))
+      {
+        n.SetAttribute(key, transformer(n.Attributes[key]));
+      }
+    });
+    return this;
+  }
+
 
   /// <summary>
   /// Converts the SVG nodes that match the current predicate to a list.
@@ -791,6 +1006,7 @@ public class SvgQueryBuilder
   /// <summary>
   /// Finds SVG nodes that match the current predicate.
   /// </summary>
+  /// <remarks>It performs a recursive search</remarks>
   /// <param name="node">The root node to start finding from.</param>
   /// <returns>An enumerable of <see cref="SvgNode"/> instances that match the current predicate.</returns>
   IEnumerable<SvgNode> FindNodes(SvgNode node)
@@ -800,11 +1016,12 @@ public class SvgQueryBuilder
       yield return node;
     }
 
+    // Recursively call FindNodes for each child
     foreach(var child in node.Children)
     {
-      if(Predicate(child))
+      foreach(var descendant in FindNodes(child)) // Iterate through descendants
       {
-        yield return child;
+        yield return descendant;
       }
     }
   }
@@ -814,7 +1031,7 @@ public class SvgQueryBuilder
 <!--
   Metadata:
     - Project: Six.SvgKit
-    - File: libs\Six.SvgKit\src\SvgResult.cs
+    - File: Six.SvgKit\src\SvgResult.cs
 -->
 ```
 using System.Diagnostics.CodeAnalysis;
@@ -869,7 +1086,7 @@ public record SvgResult
   /// </summary>
   /// <param name="comparisonDelegate">The delegate to invoke with the comparison result.</param>
   /// <returns>The current <see cref="SvgResult"/> instance.</returns>
-  public SvgResult GetSizeComparisonInPercentage(Action<double> comparisonDelegate)
+  public SvgResult SizeComparisonInPercentage(Action<double> comparisonDelegate)
   {
     int bytesBefore = OriginalSvg.ToBytes().Length;
     int bytesAfter = ModifiedSvg.ToBytes().Length;
@@ -884,7 +1101,7 @@ public record SvgResult
   /// </summary>
   /// <param name="comparisonDelegate">The delegate to invoke with the comparison result.</param>
   /// <returns>The current <see cref="SvgResult"/> instance.</returns>
-  public SvgResult GetSizeComparisonInBytes(Action<int, int> comparisonDelegate)
+  public SvgResult SizeComparisonInBytes(Action<int, int> comparisonDelegate)
   {
     comparisonDelegate(OriginalSvg.ToBytes().Length, ModifiedSvg.ToBytes().Length);
     return this;
@@ -921,14 +1138,14 @@ public record SvgResult
 <!--
   Metadata:
     - Project: Six.SvgKit.Optimizer
-    - File: libs\Six.SvgKit.Optimizer\README.md
+    - File: Six.SvgKit.Optimizer\README.md
 -->
 # Library
 
 <!--
   Metadata:
     - Project: Six.SvgKit.Optimizer
-    - File: libs\Six.SvgKit.Optimizer\src\SvgOptimizer..cs
+    - File: Six.SvgKit.Optimizer\src\SvgOptimizer..cs
 -->
 ```
 using JetBrains.Annotations;
@@ -949,7 +1166,7 @@ public static partial class SvgOptimizer
     return builder;
   }
 
-  
+
   /// <summary>
   /// Removes the SVG namespace from the root element (xmlns="http://www.w3.org/2000/svg").
   /// </summary>
@@ -960,8 +1177,65 @@ public static partial class SvgOptimizer
     builder.Svg.RemoveNamespace = true;
     return builder;
   }
+
   
-  
+  /// <summary>
+  /// Removes empty SVG nodes from the document.
+  /// </summary>
+  /// <param name="builder">The SvgQueryBuilder instance.</param>
+  /// <returns>The SvgQueryBuilder instance for method chaining.</returns>
+  public static SvgQueryBuilder RemoveEmptyNodes(this SvgQueryBuilder builder)
+  {
+    void RemoveEmptyNodesRecursive(SvgNode node)
+    {
+      // Iterate through children in reverse order to safely remove while iterating
+      for(int i = node.Children.Count - 1; i >= 0; i--)
+      {
+        var child = node.Children[i];
+        RemoveEmptyNodesRecursive(child);
+
+        if(!child.Children.Any())
+        {
+          node.Children.RemoveAt(i);
+        }
+      }
+    }
+
+    RemoveEmptyNodesRecursive(builder.Ast.Root);
+    return builder;
+  }
+
+
+  /// <summary>
+  /// Removes empty <c>text</c> and <c>tspan</c> elements, and <c>tref</c> elements that don't reference
+  /// another node in the document.
+  /// </summary>
+  /// <param name="builder">The SvgQueryBuilder instance.</param>
+  /// <param name="removeText">If to remove empty <c>text</c> elements. Default is <c>true</c></param>
+  /// <param name="removeTspan">If to remove empty <c>tspan</c> elements. Default is <c>true</c></param>
+  /// <param name="removeTref">If to remove empty <c>tref</c> elements. Default is <c>true</c></param>
+  /// <returns>The SvgQueryBuilder instance for method chaining.</returns>
+  public static SvgQueryBuilder RemoveEmptyText(
+    this SvgQueryBuilder builder,
+    bool removeText = true,
+    bool removeTspan = true,
+    bool removeTref = true
+    )
+  {
+    builder
+      .Select(_ => true)
+      .Where(n =>
+      {
+        return n is { Name: "text", Children.Count: 0 }
+               || n is { Name: "tspan", Children.Count: 0 }
+               || n.Name == "tref" && n.Attributes["href"] == string.Empty;
+      }) // This is for xlink:href attribute. Xml parser sees it as href
+      .RemoveNodes();
+
+    return builder.Continue();
+  }
+
+
   /// <summary>
   /// Compresses the output of a SVG document by removing unnecessary whitespace and line breaks.
   /// </summary>
@@ -972,14 +1246,13 @@ public static partial class SvgOptimizer
     builder.Svg.CompressOutput = true;
     return builder;
   }
-
 }
 ```
 
 <!--
   Metadata:
     - Project: Six.SvgKit.Optimizer
-    - File: libs\Six.SvgKit.Optimizer\src\SvgOptimizer.Attributes.cs
+    - File: Six.SvgKit.Optimizer\src\SvgOptimizer.Attributes.cs
 -->
 ```
 namespace Six.SvgKit.Optimizer;
@@ -993,18 +1266,62 @@ public static partial class SvgOptimizer
   /// <returns>The modified SvgQueryBuilder instance.</returns>
   public static SvgQueryBuilder RemoveViewBoxAttribute(this SvgQueryBuilder builder)
   {
-    builder.RemoveAttribute("viewBox");
+    builder.RemoveAttribute("viewBox").Continue();
     return builder;
   }
 
+  /// <summary>
+  /// Removes all whitespace from attribute values in the document.
+  /// </summary>
+  /// <param name="builder"></param>
+  /// <returns></returns>
+  public static SvgQueryBuilder CleanupAttributes(this SvgQueryBuilder builder)
+  {
+    builder
+      .Select(_ => true)
+      .SelectAttributes(
+        _ => true,
+        (node, key, value) => node.SetAttribute(key, value.Replace(" ", "").Trim())
+      )
+      .Continue();
+    return builder;
+  }
 
+  /// <summary>
+  /// Remove empty attributes from elements in the document.
+  /// </summary>
+  /// <remarks>
+  /// Ignores the following attributes, as they're used for conditional rendering:
+  /// <c>requiredFeatures</c>, <c>requiredExtensions</c>, <c>systemLanguage</c>
+  /// </remarks>
+  /// <param name="builder"></param>
+  /// <returns></returns>
+  public static SvgQueryBuilder RemoveEmptyAttributes(this SvgQueryBuilder builder)
+  {
+    builder
+      .Select(_ => true)
+      .SelectAttributes(
+        _ => true,
+        (node, key, value) =>
+        {
+          string[] ignored = ["requiredFeatures", "requiredExtensions", "systemLanguage"];
+
+          if(string.IsNullOrEmpty(value) && !ignored.Contains(key))
+          {
+            node.RemoveAttribute(key);
+          }
+        })
+      .Continue();
+
+    return builder;
+  }
 }
 ```
 
 <!--
   Metadata:
     - Project: Six.SvgKit.Optimizer
-    - File: libs\Six.SvgKit.Optimizer\src\SvgOptimizer.Groups.cs
+    - File: Six.SvgKit.Optimizer\src\SvgOptimizer.Groups.cs
 -->
 ```
 namespace Six.SvgKit.Optimizer;
@@ -1012,14 +1329,15 @@ namespace Six.SvgKit.Optimizer;
 public static partial class SvgOptimizer
 {
   /// <summary>
-  /// Removes empty group elements from the SVG document.
+  /// Remove container elements in the document that have no children or meaningful attributes,
+  /// excluding the <c>&lt;svg&gt;</c> element which is ignored.
   /// </summary>
   /// <param name="builder">The <see cref="SvgQueryBuilder"/> instance to operate on.</param>
   /// <returns>The modified <see cref="SvgQueryBuilder"/> instance.</returns>
   public static SvgQueryBuilder RemoveEmptyContainers(this SvgQueryBuilder builder)
   {
-    RemoveEmptyGroups(builder.Ast.Root);
-    return builder;
+    RemoveEmptyContainersInternal(builder.Ast.Root);
+    return builder.Continue();
   }
 
 
@@ -1030,13 +1348,108 @@ public static partial class SvgOptimizer
   /// <returns>The modified <see cref="SvgQueryBuilder"/> instance.</returns>
   public static SvgQueryBuilder CollapseGroups(this SvgQueryBuilder builder)
   {
-    RemoveEmptyGroups(builder.Ast.Root);
-    return builder;
+    var groups = builder
+      .Select(n => n.Name == "g")
+      .ToList();
+
+    foreach(var group in groups)
+    {
+      CollapseGroupsInternal(group);
+    }
+    
+    return builder.Continue();
   }
 
 
   // PRIVATE METHODS
   // ----------------------------------------------------------------------------------------------------------
+  static void RemoveEmptyContainersInternal(SvgNode node)
+  {
+    // A container, as defined in the SVG specifications (https://www.w3.org/TR/SVG11/intro.html#TermContainerElement),
+    // is an SVG element that can have graphical child elements. Container elements include:
+    var emptyGroupNames = new HashSet<string>
+    {
+      "a",
+      "defs",
+      "glyph",
+      "g",
+      "marker",
+      "mask",
+      "missing-glyph",
+      "pattern",
+      "svg",
+      "switch",
+      "symbol"
+    };
+
+    node.Children.RemoveAll(child =>
+      emptyGroupNames.Contains(child.Name) && !child.Attributes.Any() && !child.Children.Any());
+
+    foreach(var child in node.Children)
+    {
+      RemoveEmptyContainersInternal(child);
+    }
+  }
+
+  static void CollapseGroupsInternal(SvgNode node)
+  {
+    if(node is { Name: "g", Children.Count: > 0 })
+    {
+      if(node.Attributes.Any() && node.Children.Count == 1)
+      {
+        var firstChild = node.Children[0];
+        var nodeHasFilter = node.Attributes.ContainsKey("filter");
+        var nodeHasClipPath = node.Attributes.ContainsKey("clip-path");
+        var nodeHasMask = node.Attributes.ContainsKey("mask");
+
+        if(firstChild.Name != "g"
+           && firstChild.Attributes.ContainsKey("id") == false
+           && !nodeHasFilter
+           && (nodeHasClipPath == false && nodeHasMask == false))
+        {
+          foreach(var attr in node.Attributes)
+          {
+            if(firstChild.Attributes.ContainsKey(attr.Key) == false)
+            {
+              firstChild.SetAttribute(attr.Key, attr.Value);
+            }
+            else if(attr.Key == "transform")
+            {
+              firstChild.SetAttribute(attr.Key, attr.Value + " " + firstChild.Attributes[attr.Key]);
+            }
+            else if(firstChild.Attributes[attr.Key] == "inherit")
+            {
+              firstChild.SetAttribute(attr.Key, attr.Value);
+            }
+            else if(_inheritableAttributes.Contains(attr.Key) && firstChild.Attributes[attr.Key] != attr.Value)
+            {
+              firstChild.SetAttribute(attr.Key, attr.Value);
+            }
+          }
+
+          node.Attributes.Clear();
+        }
+      }
+
+      if(node.Attributes.Any() == false)
+      {
+        var hasAnimationElement = node.Children.Any(child => _animationElements.Contains(child.Name));
+        if(!hasAnimationElement && node.Parent is not null)
+        {
+          var index = node.Parent.Children.IndexOf(node);
+          node.Parent.Children.InsertRange(index, node.Children);
+          node.Parent.Children.Remove(node);
+        }
+      }
+    }
+    else
+    {
+      // Remove empty groups
+      node.Parent?.Children.Remove(node);
+    }
+  }
+
+
   static readonly HashSet<string> _animationElements =
   [
     "animate",
@@ -1088,83 +1501,17 @@ public static partial class SvgOptimizer
     "word-spacing",
     "writing-mode"
   ];
-
-  static void RemoveEmptyGroups(SvgNode node)
-  {
-    node.Children.RemoveAll(child =>
-      child.Name == "g" && !child.Attributes.Any() && !child.Children.Any());
-
-    foreach(var child in node.Children)
-    {
-      RemoveEmptyGroups(child);
-    }
-  }
-
-  static void CollapseGroupsRecursive(SvgNode node)
-  {
-    if(node is { Name: "g", Children.Count: > 0 })
-    {
-      if(node.Attributes.Any() && node.Children.Count == 1)
-      {
-        var firstChild = node.Children[0];
-        var nodeHasFilter = node.Attributes.ContainsKey("filter");
-        var nodeHasClipPath = node.Attributes.ContainsKey("clip-path");
-        var nodeHasMask = node.Attributes.ContainsKey("mask");
-
-        if(firstChild.Name != "g" && firstChild.Attributes.ContainsKey("id") == false 
-                                  && !nodeHasFilter 
-                                  && (nodeHasClipPath == false && nodeHasMask == false))
-        {
-          foreach(var attr in node.Attributes)
-          {
-            if(firstChild.Attributes.ContainsKey(attr.Key) == false)
-            {
-              firstChild.SetAttribute(attr.Key, attr.Value);
-            }
-            else if(attr.Key == "transform")
-            {
-              firstChild.SetAttribute(attr.Key, attr.Value + " " + firstChild.Attributes[attr.Key]);
-            }
-            else if(firstChild.Attributes[attr.Key] == "inherit")
-            {
-              firstChild.SetAttribute(attr.Key, attr.Value);
-            }
-            else if(_inheritableAttributes.Contains(attr.Key) && firstChild.Attributes[attr.Key] != attr.Value)
-            {
-              return;
-            }
-          }
-
-          node.Attributes.Clear();
-        }
-      }
-
-      if(node.Attributes.Any() == false)
-      {
-        var hasAnimationElement = node.Children.Any(child => _animationElements.Contains(child.Name));
-        if(!hasAnimationElement && node.Parent is not null)
-        {
-          var index = node.Parent.Children.IndexOf(node);
-          node.Parent.Children.InsertRange(index, node.Children);
-          node.Parent.Children.Remove(node);
-        }
-      }
-    }
-
-    foreach(var child in node.Children)
-    {
-      CollapseGroupsRecursive(child);
-    }
-  }
 }
 ```
 
 <!--
   Metadata:
     - Project: Six.SvgKit.Optimizer
-    - File: libs\Six.SvgKit.Optimizer\src\SvgOptimizer.Paths.cs
+    - File: Six.SvgKit.Optimizer\src\SvgOptimizer.Paths.cs
 -->
 ```
+using System.Text.RegularExpressions;
+
 namespace Six.SvgKit.Optimizer;
 
 public static partial class SvgOptimizer
@@ -1208,16 +1555,42 @@ public static partial class SvgOptimizer
       root.AddChild(mergedPath);
     }
 
-    return builder;
+    return builder.Continue();
   }
 
+  
+  /// <summary>
+  /// Merges consecutive path commands of the same type into a single command.
+  /// For example, "M 10,10 L 20,20 L 30,30" becomes "M 10,10 L 20,20 30,30".
+  /// </summary>
+  /// <param name="builder">The SvgQueryBuilder instance.</param>
+  /// <returns>The SvgQueryBuilder instance for method chaining.</returns>
+  public static SvgQueryBuilder MergePathCommands(this SvgQueryBuilder builder)
+  {
+    builder.Select(n => n.Name == "path")
+      .Transform(node =>
+      {
+        if (node.Attributes.TryGetValue("d", out var pathData))
+        {
+          node.SetAttribute("d", MergePathDataCommands(pathData));
+        }
+      });
+
+    return builder;
+  }
+  
+  // Helper function to merge path commands in path data
+  static string MergePathDataCommands(string pathData)
+  {
+    return Regex.Replace(pathData, @"([MLHVZ])\s*(?=[0-9\-])", "$1");
+  }
 }
 ```
 
 <!--
   Metadata:
     - Project: Six.SvgKit.Optimizer
-    - File: libs\Six.SvgKit.Optimizer\src\Helpers\PathHelpers.cs
+    - File: Six.SvgKit.Optimizer\src\Helpers\PathHelpers.cs
 -->
 ```
 using System.Text;
@@ -1266,570 +1639,6 @@ public static class PathHelpers
     }
 
     return mergedPath.ToString();
-  }
-}
-```
-
-<!--
-  Metadata:
-    - Project: Six.SvgKit.Test.Unit
-    - File: tests\Six.SvgKit.Test.Unit\GlobalUsings.cs
--->
-```
-global using Xunit;
-global using System.Xml.Linq;
-global using Six.SvgKit;
-global using Six.SvgKit.Optimizer;
-```
-
-<!--
-  Metadata:
-    - Project: Six.SvgKit.Test.Unit
-    - File: tests\Six.SvgKit.Test.Unit\src\SvgAstTests.cs
--->
-```
-namespace SvgKit.Test.Unit;
-
-public class SvgAstTests
-{
-  [Fact]
-  public void Constructor_ValidXDocument_CreatesAstCorrectly()
-  {
-    // Arrange
-    var svg = Svg.FromXDocument(XDocument.Parse("<svg><rect width='100' height='100'/></svg>"));
-    var xDoc = XDocument.Parse("<svg><rect width='100' height='100'/></svg>");
-
-    // Act
-    var ast = new SvgAst(svg, xDoc);
-
-    // Assert
-    Assert.NotNull(ast.Root);
-    Assert.Equal("svg", ast.Root.Name);
-    Assert.Single(ast.Root.Children);
-    Assert.Equal("rect", ast.Root.Children[0].Name);
-  }
-
-  [Fact]
-  public void Constructor_ValidSvgString_CreatesAstCorrectly()
-  {
-    // Arrange
-    var svg = Svg.FromString("<svg><circle cx='50' cy='50' r='40'/></svg>");
-    var svgString = "<svg><circle cx='50' cy='50' r='40'/></svg>";
-
-    // Act
-    var ast = new SvgAst(svg, svgString);
-
-    // Assert
-    Assert.NotNull(ast.Root);
-    Assert.Equal("svg", ast.Root.Name);
-    Assert.Single(ast.Root.Children);
-    Assert.Equal("circle", ast.Root.Children[0].Name);
-  }
-
-}
-```
-
-<!--
-  Metadata:
-    - Project: Six.SvgKit.Test.Unit
-    - File: tests\Six.SvgKit.Test.Unit\src\SvgNodeTests.cs
--->
-```
-namespace SvgKit.Test.Unit;
-
-public class SvgNodeTests
-{
-  [Fact]
-  public void Constructor_SetsNameCorrectly()
-  {
-    // Arrange
-    var svg = Svg.FromString("<svg></svg>");
-
-    // Act
-    var node = new SvgNode(svg, "rect");
-
-    // Assert
-    Assert.Equal("rect", node.Name);
-  }
-
-  [Fact]
-  public void AddChild_AddsChildCorrectly()
-  {
-    // Arrange
-    var svg = Svg.FromString("<svg></svg>");
-    var parent = new SvgNode(svg, "g");
-    var child = new SvgNode(svg, "rect");
-
-    // Act
-    parent.AddChild(child);
-
-    // Assert
-    Assert.Single(parent.Children);
-    Assert.Equal(child, parent.Children[0]);
-    Assert.Equal(parent, child.Parent);
-  }
-
-  [Fact]
-  public void SetAttribute_SetsAttributeCorrectly()
-  {
-    // Arrange
-    var svg = Svg.FromString("<svg></svg>");
-    var node = new SvgNode(svg, "rect");
-
-    // Act
-    node.SetAttribute("width", "100");
-
-    // Assert
-    Assert.Equal("100", node.Attributes["width"]);
-  }
-
-  [Fact]
-  public void RemoveAttribute_RemovesAttributeCorrectly()
-  {
-    // Arrange
-    var svg = Svg.FromString("<svg></svg>");
-    var node = new SvgNode(svg, "rect");
-    node.SetAttribute("width", "100");
-
-    // Act
-    node.RemoveAttribute("width");
-
-    // Assert
-    Assert.False(node.Attributes.ContainsKey("width"));
-  }
-
-  [Fact]
-  public void ToXElement_CreatesCorrectXElement()
-  {
-    // Arrange
-    var svg = Svg.FromString("<svg></svg>");
-    var node = new SvgNode(svg, "rect");
-    node.SetAttribute("width", "100");
-    node.SetAttribute("height", "50");
-
-    // Act
-    var xElement = node.ToXElement();
-
-    // Assert
-    Assert.Equal("rect", xElement.Name.LocalName);
-    Assert.Equal("100", xElement.Attribute("width")?.Value);
-    Assert.Equal("50", xElement.Attribute("height")?.Value);
-  }
-}
-```
-
-<!--
-  Metadata:
-    - Project: Six.SvgKit.Test.Unit
-    - File: tests\Six.SvgKit.Test.Unit\src\SvgOptimizerTests.cs
--->
-```
-namespace SvgKit.Test.Unit;
-
-public partial class SvgOptimizerTests
-{
-  [Fact]
-  public void RemoveXmlDeclaration_SetsOmitXmlDeclarationToTrue()
-  {
-    // Arrange
-    var svg = Svg.FromString("<svg></svg>");
-    var builder = new SvgQueryBuilder(svg);
-
-    // Act
-    builder.RemoveXmlDeclaration();
-
-    // Assert
-    Assert.True(builder.Svg.OmmitXmlDeclaration);
-  }
-
-  [Fact]
-  public void RemoveNamespace_SetsRemoveNamespaceToTrue()
-  {
-    // Arrange
-    var svg = Svg.FromString("<svg></svg>");
-    var builder = new SvgQueryBuilder(svg);
-
-    // Act
-    builder.RemoveNamespace();
-
-    // Assert
-    Assert.True(builder.Svg.RemoveNamespace);
-  }
-
-  [Fact]
-  public void RemoveEmptyGroups_RemovesEmptyGroupElements()
-  {
-    // Arrange
-    var svg = Svg.FromString("<svg><g></g><g><rect/></g><g></g></svg>");
-    var builder = new SvgQueryBuilder(svg);
-
-    // Act
-    builder.RemoveEmptyContainers();
-
-    // Assert
-    var result = builder.Build();
-    var resultXml = result.ToXDocument().Root;
-    
-    Assert.NotNull(resultXml);
-    Assert.Single(resultXml.Elements());
-    Assert.Equal("g", resultXml.Elements().First().Name.LocalName);
-    Assert.Single(resultXml.Elements().First().Elements());
-  }
-
-  [Fact]
-  public void RemoveViewBoxAttribute_RemovesViewBoxAttribute()
-  {
-    // Arrange
-    var svg = Svg.FromString("<svg viewBox='0 0 100 100'></svg>");
-    var builder = new SvgQueryBuilder(svg);
-
-    // Act
-    builder.RemoveViewBoxAttribute();
-
-    // Assert
-    var result = builder.Build();
-    var resultXml = result.ToXDocument().Root;
-    
-    Assert.NotNull(resultXml);
-    Assert.Null(resultXml.Attribute("viewBox"));
-  }
-
-  [Fact]
-  public void MergePaths_MergesMultiplePathsIntoOne()
-  {
-    // Arrange
-    var svg = Svg.FromString("<svg><path d='M0 0h10'/><path d='M10 10h10'/></svg>");
-    var builder = new SvgQueryBuilder(svg);
-
-    // Act
-    builder.MergePaths();
-
-    // Assert
-    var result = builder.Build();
-    var resultXml = result.ToXDocument().Root;
-
-    Assert.NotNull(resultXml);
-    
-    Assert.Single(resultXml.Elements());
-    Assert.Equal("path", resultXml.Elements().First().Name.LocalName);
-    Assert.Equal("M0 0h10 M10 10h10", resultXml.Elements().First().Attribute("d")?.Value);
-  }
-}
-```
-
-<!--
-  Metadata:
-    - Project: Six.SvgKit.Test.Unit
-    - File: tests\Six.SvgKit.Test.Unit\src\SvgOptimizerTests.Groups.cs
--->
-```
-namespace SvgKit.Test.Unit;
-
-public partial class SvgOptimizerTests
-{
-  [Fact]
-  public void CollapseGroups_EmptyGroup_RemovesGroup()
-  {
-    // Arrange
-    var svg = Svg.FromString("<svg><g></g></svg>");
-    var builder = new SvgQueryBuilder(svg);
-
-    // Act
-    builder.CollapseGroups();
-
-    // Assert
-    var result = builder.Build();
-    var svgElement = result.ToXDocument().Root;
-
-    Assert.NotNull(svgElement);
-    Assert.DoesNotContain(svgElement.Descendants(), e => e.Name.LocalName == "g");
-  }
-
-  [Fact]
-  public void CollapseGroups_GroupWithAttributes_PreservesGroup()
-  {
-    // Arrange
-    var svg = Svg.FromString("<svg><g fill='red'><rect/></g></svg>");
-    var builder = new SvgQueryBuilder(svg);
-
-    // Act
-    builder.CollapseGroups();
-
-    // Assert
-    var result = builder.Build();
-    var svgElement = result.ToXDocument().Root;
-    
-    Assert.NotNull(svgElement);
-    Assert.Contains(svgElement.Descendants(), e => e.Name.LocalName == "g");
-  }
-
-  [Fact]
-  public void CollapseGroups_GroupWithSingleChild_MovesAttributesToChild()
-  {
-    // Arrange
-    var svg = Svg.FromString("<svg><g fill='red'><rect/></g></svg>");
-    var builder = new SvgQueryBuilder(svg);
-
-    // Act
-    builder.CollapseGroups();
-
-    // Assert
-    var result = builder.Build();
-    var svgElement = result.ToXDocument().Root;
-    
-    Assert.NotNull(svgElement);
-    var rectElement = svgElement.Descendants().First(e => e.Name.LocalName == "rect");
-    Assert.Equal("red", rectElement.Attribute("fill")?.Value);
-  }
-
-  [Fact]
-  public void CollapseGroups_GroupWithFilterAttribute_PreservesGroup()
-  {
-    // Arrange
-    var svg = Svg.FromString("<svg><g filter='url(#f)'><rect/></g></svg>");
-    var builder = new SvgQueryBuilder(svg);
-
-    // Act
-    builder.CollapseGroups();
-
-    // Assert
-    var result = builder.Build();
-    var svgElement = result.ToXDocument().Root;
-    
-    Assert.NotNull(svgElement);
-    Assert.Contains(svgElement.Descendants(), e => e.Name.LocalName == "g");
-  }
-
-  [Fact]
-  public void CollapseGroups_GroupWithClipPathAttribute_PreservesGroup()
-  {
-    // Arrange
-    var svg = Svg.FromString("<svg><g clip-path='url(#cp)'><rect/></g></svg>");
-    var builder = new SvgQueryBuilder(svg);
-
-    // Act
-    builder.CollapseGroups();
-
-    // Assert
-    var result = builder.Build();
-    var svgElement = result.ToXDocument().Root;
-    
-    Assert.NotNull(svgElement);
-    Assert.Contains(svgElement.Descendants(), e => e.Name.LocalName == "g");
-  }
-
-  [Fact]
-  public void CollapseGroups_GroupWithMaskAttribute_PreservesGroup()
-  {
-    // Arrange
-    var svg = Svg.FromString("<svg><g mask='url(#m)'><rect/></g></svg>");
-    var builder = new SvgQueryBuilder(svg);
-
-    // Act
-    builder.CollapseGroups();
-
-    // Assert
-    var result = builder.Build();
-    var svgElement = result.ToXDocument().Root;
-    
-    Assert.NotNull(svgElement);
-    Assert.Contains(svgElement.Descendants(), e => e.Name.LocalName == "g");
-  }
-
-  [Fact]
-  public void CollapseGroups_GroupWithAnimationElement_PreservesGroup()
-  {
-    // Arrange
-    var svg = Svg.FromString("<svg><g><animate/><rect/></g></svg>");
-    var builder = new SvgQueryBuilder(svg);
-
-    // Act
-    builder.CollapseGroups();
-
-    // Assert
-    var result = builder.Build();
-    var svgElement = result.ToXDocument().Root;
-    
-    Assert.NotNull(svgElement);
-    Assert.Contains(svgElement.Descendants(), e => e.Name.LocalName == "g");
-  }
-}
-```
-
-<!--
-  Metadata:
-    - Project: Six.SvgKit.Test.Unit
-    - File: tests\Six.SvgKit.Test.Unit\src\SvgQueryBuilderTests.cs
--->
-```
-namespace SvgKit.Test.Unit;
-
-public class SvgQueryBuilderTests
-{
-  [Fact]
-  public void Select_SetsPredicateCorrectly()
-  {
-    // Arrange
-    var svg = Svg.FromString("<svg><rect/><circle/></svg>");
-    var builder = new SvgQueryBuilder(svg);
-
-    // Act
-    builder.Select(node => node.Name == "rect");
-
-    // Assert
-    Assert.True(builder.Predicate(new SvgNode(svg, "rect")));
-    Assert.False(builder.Predicate(new SvgNode(svg, "circle")));
-  }
-
-  [Fact]
-  public void Where_CombinesPredicatesCorrectly()
-  {
-    // Arrange
-    var svg = Svg.FromString("<svg><rect width='100'/><rect width='200'/></svg>");
-    var builder = new SvgQueryBuilder(svg);
-
-    // Act
-    builder.Select(node => node.Name == "rect")
-      .Where(node => node.Attributes.ContainsKey("width") && node.Attributes["width"] == "100");
-
-    // Assert
-    var rectNode100 = new SvgNode(svg, "rect");
-    rectNode100.SetAttribute("width", "100");
-    var rectNode200 = new SvgNode(svg, "rect");
-    rectNode200.SetAttribute("width", "200");
-
-    Assert.True(builder.Predicate(rectNode100));
-    Assert.False(builder.Predicate(rectNode200));
-  }
-
-  [Fact]
-  public void RemoveNodes_RemovesMatchingNodes()
-  {
-    // Arrange
-    var svg = Svg.FromString("<svg><rect/><circle/><rect/></svg>");
-    var builder = new SvgQueryBuilder(svg);
-
-    // Act
-    builder
-      .Select(node => node.Name == "rect")
-      .RemoveNodes();
-
-    // Assert
-    var result = builder.Build();
-    var resultXml = result.ToXDocument().Root;
-
-    Assert.NotNull(resultXml);
-    Assert.Single(resultXml.Elements());
-    Assert.Equal("circle", resultXml.Elements().First().Name.LocalName);
-  }
-
-  [Fact]
-  public void SetAttribute_SetsAttributeOnMatchingNodes()
-  {
-    // Arrange
-    var svg = Svg.FromString("<svg><rect/><circle/></svg>");
-    var builder = new SvgQueryBuilder(svg);
-
-    // Act
-    builder
-      .Select(node => node.Name == "rect")
-      .SetAttribute("width", "100");
-
-    // Assert
-    var result = builder.Build();
-    var resultXml = result.ToXDocument().Root;
-    
-    Assert.NotNull(resultXml);
-    
-    var rectElement = resultXml.Elements().First(e => e.Name.LocalName == "rect");
-    Assert.Equal("100", rectElement.Attribute("width")?.Value);
-  }
-}
-```
-
-<!--
-  Metadata:
-    - Project: Six.SvgKit.Test.Unit
-    - File: tests\Six.SvgKit.Test.Unit\src\SvgTests.cs
--->
-```
-namespace SvgKit.Test.Unit;
-
-public class SvgTests
-{
-  private const string TestSvgString = @"
-            <svg xmlns=""http://www.w3.org/2000/svg"" width=""100"" height=""100"">
-                <rect x=""10"" y=""10"" width=""80"" height=""80"" fill=""blue"" />
-            </svg>";
-
-  [Fact]
-  public void FromString_CreatesSvgInstance()
-  {
-    var svg = Svg.FromString(TestSvgString);
-    Assert.NotNull(svg);
-    Assert.IsType<Svg>(svg);
-  }
-
-  [Fact]
-  public void FromXDocument_CreatesSvgInstance()
-  {
-    var xDoc = XDocument.Parse(TestSvgString);
-    var svg = Svg.FromXDocument(xDoc);
-    Assert.NotNull(svg);
-    Assert.IsType<Svg>(svg);
-  }
-
-  [Fact]
-  public void WithId_SetsSvgId()
-  {
-    var svg = Svg.FromString(TestSvgString);
-    svg.WithId("testId");
-    Assert.Equal("testId", svg.Id);
-  }
-
-  [Fact]
-  public void Clone_CreatesCopy()
-  {
-    var original = Svg.FromString(TestSvgString);
-    original.WithId("originalId");
-    var clone = original.Clone();
-
-    Assert.NotNull(clone);
-    Assert.IsType<Svg>(clone);
-    Assert.Equal(original.Id, clone.Id);
-    Assert.NotSame(original, clone);
-  }
-
-  [Fact]
-  public void ToXDocument_ReturnsValidXDocument()
-  {
-    var svg = Svg.FromString(TestSvgString);
-    var xDoc = svg.ToXDocument();
-
-    Assert.NotNull(xDoc);
-    Assert.IsType<XDocument>(xDoc);
-    Assert.Equal("svg", xDoc.Root?.Name.LocalName);
-  }
-
-  [Fact]
-  public void ToSvg_ReturnsValidSvgString()
-  {
-    var svg = Svg.FromString(TestSvgString);
-    var svgString = svg.ToSvg();
-
-    Assert.NotNull(svgString);
-    Assert.Contains("<svg", svgString);
-    Assert.Contains("<rect", svgString);
-  }
-
-  [Fact]
-  public void ToBytes_ReturnsNonEmptyByteArray()
-  {
-    var svg = Svg.FromString(TestSvgString);
-    var bytes = svg.ToBytes();
-
-    Assert.NotNull(bytes);
-    Assert.NotEmpty(bytes);
   }
 }
 ```

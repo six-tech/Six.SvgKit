@@ -1,4 +1,4 @@
-﻿namespace SvgKit.Test.Unit;
+﻿namespace SvgKit.Optimizer.Test.Unit;
 
 public partial class SvgOptimizerTests
 {

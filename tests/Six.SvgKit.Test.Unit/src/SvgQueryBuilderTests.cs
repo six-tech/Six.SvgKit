@@ -1,7 +1,16 @@
-﻿namespace SvgKit.Test.Unit;
+﻿using Xunit.Abstractions;
+
+namespace SvgKit.Test.Unit;
 
 public class SvgQueryBuilderTests
 {
+  readonly ITestOutputHelper _testOutputHelper;
+
+  public SvgQueryBuilderTests(ITestOutputHelper testOutputHelper)
+  {
+    _testOutputHelper = testOutputHelper;
+  }
+
   [Fact]
   public void Select_SetsPredicateCorrectly()
   {
@@ -99,7 +108,7 @@ public class SvgQueryBuilderTests
   }
 
   [Fact]
-  public void WhereFork_AppliesActionsConditionally()
+  public void Transform_ConditionallAttributes()
   {
     // Arrange
     var svg = Svg.FromString("<svg><rect width='50' height='50'/><rect width='150' height='100'/></svg>");
@@ -108,18 +117,18 @@ public class SvgQueryBuilderTests
     // Act
     builder
       .Select(n => n.Name == "rect")
-      .WhereFork(
-        n => int.Parse(n.Attributes.GetValueOrDefault("width", "0")) > 100,
-        ifTrue: b => b.SetAttribute("fill", "red"),
-        ifFalse: b => b.SetAttribute("fill", "blue")
-      );
+      .Transform(n =>
+      {
+        var width = int.Parse(n.Attributes.GetValueOrDefault("width", "0"));
+        n.SetAttribute("fill", width > 100 ? "red" : "blue");
+      });
 
     // Assert
     var result = builder.Build();
     var resultXml = result.ToXDocument().Root;
 
     Assert.NotNull(resultXml);
-    
+
     var smallRect = resultXml.Elements()
       .First(e => e.Name.LocalName == "rect" && int.Parse(e.Attribute("width")!.Value) == 50);
     var largeRect = resultXml.Elements()
@@ -145,7 +154,7 @@ public class SvgQueryBuilderTests
     var resultXml = result.ToXDocument().Root;
 
     Assert.NotNull(resultXml);
-    
+
     var smallCircle = resultXml.Elements()
       .First(e => e.Name.LocalName == "circle" && int.Parse(e.Attribute("r")!.Value) == 5);
     var largeCircle = resultXml.Elements()
@@ -171,7 +180,7 @@ public class SvgQueryBuilderTests
     var resultXml = result.ToXDocument().Root;
 
     Assert.NotNull(resultXml);
-    
+
     var pathElement = resultXml.Elements().First(e => e.Name.LocalName == "path");
 
     Assert.NotNull(pathElement);
@@ -194,7 +203,7 @@ public class SvgQueryBuilderTests
     var resultXml = result.ToXDocument().Root;
 
     Assert.NotNull(resultXml);
-    
+
     var filledRect = resultXml.Elements().First(e => e.Name.LocalName == "rect" && e.Attribute("fill") != null);
     var nonFilledRect = resultXml.Elements().First(e => e.Name.LocalName == "rect" && e.Attribute("fill") == null);
 
@@ -234,11 +243,99 @@ public class SvgQueryBuilderTests
     // Assert
     var result = builder.Build();
     var resultXml = result.ToXDocument().Root;
-    
+
     Assert.NotNull(resultXml);
-    
+
     var textElement = resultXml.Elements().First(e => e.Name.LocalName == "text");
 
     Assert.Equal("14px", textElement.Attribute("font-size")?.Value);
+  }
+
+
+  // Attribute SELECT
+  // ----------------------------------------------------------------------------------------------------------
+  /// <summary>
+  /// Helper method to create simple SVG document.
+  /// </summary>
+  static Svg CreateSvgDocument()
+  {
+    string svgString = @"
+            <svg xmlns='http://www.w3.org/2000/svg'>
+                <rect width='100' height='50'/>
+                <rect width='200' height='100'/>
+                <circle radius='25'/>
+            </svg>";
+    return Svg.FromString(svgString);
+  }
+
+  [Fact]
+  public void SelectAttributes_ModifiesAttributesForAllSelectedNodes()
+  {
+    var svg = CreateSvgDocument();
+    var builder = new SvgQueryBuilder(svg);
+
+    var result = builder
+      .Select(n => n.Name == "rect")
+      .SelectAttributes(
+        attr => attr.Key == "width",
+        (node, key, value) => node.SetAttribute(key, (int.Parse(value) * 2).ToString())
+      )
+      .Build();
+
+    var rects = result.ModifiedSvg.Ast.Root.Children.Where(n => n.Name == "rect").ToList();
+    
+    Assert.Equal("200", rects[0].Attributes["width"]);
+    Assert.Equal("50", rects[0].Attributes["height"]);
+    Assert.Equal("400", rects[1].Attributes["width"]);
+    Assert.Equal("100", rects[1].Attributes["height"]);
+
+    var circle = result.ModifiedSvg.Ast.Root.Children.First(n => n.Name == "circle");
+    Assert.Equal("25", circle.Attributes["radius"]);
+  }
+
+  [Fact]
+  public void SelectAttributes_DoesNotModifyUnselectedNodes()
+  {
+    var svg = CreateSvgDocument();
+    var builder = new SvgQueryBuilder(svg);
+
+    var result = builder
+      .Select(n => n.Name == "circle")
+      .SelectAttributes(
+        _ => true,
+        (node, key, value) => node.SetAttribute(key, value + "_modified")
+        )
+      .Build();
+
+    var rects = result.ModifiedSvg.Ast.Root.Children.Where(n => n.Name == "rect").ToList();
+    var circle = result.ModifiedSvg.Ast.Root.Children.First(n => n.Name == "circle");
+    
+    Assert.Equal("100", rects[0].Attributes["width"]);
+    Assert.Equal("50", rects[0].Attributes["height"]);
+    Assert.Equal("200", rects[1].Attributes["width"]);
+    Assert.Equal("100", rects[1].Attributes["height"]);
+
+    Assert.Equal("25_modified", circle.Attributes["radius"]);
+  }
+
+  [Fact]
+  public void SelectAttributes_AppliesPredicateCorrectly()
+  {
+    var svg = CreateSvgDocument();
+    var builder = new SvgQueryBuilder(svg);
+
+    var result = builder
+      .Select(n => n.Name == "rect")
+      .SelectAttributes(
+        attr => attr.Key.StartsWith("w"),
+        (node, key, value) => node.SetAttribute(key, (int.Parse(value) * 2).ToString())
+      )
+      .Build();
+
+    var rects = result.ModifiedSvg.Ast.Root.Children.Where(n => n.Name == "rect").ToList();
+    Assert.Equal("200", rects[0].Attributes["width"]);
+    Assert.Equal("50", rects[0].Attributes["height"]);
+    Assert.Equal("400", rects[1].Attributes["width"]);
+    Assert.Equal("100", rects[1].Attributes["height"]);
   }
 }

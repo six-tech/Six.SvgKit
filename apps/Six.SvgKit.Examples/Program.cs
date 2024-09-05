@@ -24,11 +24,11 @@ Svg
   .RemoveEmptyContainers()
   .RemoveAttribute("viewBox")
   .Build()
-  .GetSizeComparisonInPercentage(percentage =>
+  .SizeComparisonInPercentage(percentage =>
   {
     Console.WriteLine($"Percentage of size reduction: {percentage} %");
   })
-  .GetSizeComparisonInBytes((before, after) =>
+  .SizeComparisonInBytes((before, after) =>
   {
     Console.WriteLine($"Byte size before: {before}");
     Console.WriteLine($"Byte size after: {after}");
@@ -44,11 +44,11 @@ Svg
   .RemoveViewBoxAttribute()
   .MergePaths()
   .Build()
-  .GetSizeComparisonInPercentage(percentage =>
+  .SizeComparisonInPercentage(percentage =>
   {
     Console.WriteLine($"Percentage of size reduction: {percentage} %");
   })
-  .GetSizeComparisonInBytes((before, after) =>
+  .SizeComparisonInBytes((before, after) =>
   {
     Console.WriteLine($"Byte size before: {before}");
     Console.WriteLine($"Byte size after: {after}");
@@ -65,11 +65,11 @@ var result = Svg
   .RemoveViewBoxAttribute()
   .RemoveNamespace()
   .Build()
-  .GetSizeComparisonInPercentage(percentage =>
+  .SizeComparisonInPercentage(percentage =>
   {
     Console.WriteLine($"Percentage of size reduction: {percentage} %");
   })
-  .GetSizeComparisonInBytes((before, after) =>
+  .SizeComparisonInBytes((before, after) =>
   {
     Console.WriteLine($"Byte size before: {before}");
     Console.WriteLine($"Byte size after: {after}");

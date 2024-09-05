@@ -49,7 +49,7 @@ public record SvgNode
   /// <summary>
   /// <see cref="Dictionary{TKey,TValue}"/> of node attributes.
   /// </summary>
-  public Dictionary<string, string> Attributes { get; } = [];
+  public Dictionary<string, string> Attributes { get; private set; } = [];
 
   #endregion
 
@@ -100,6 +100,43 @@ public record SvgNode
   {
     Attributes.Remove(key);
   }
+
+  /// <summary>
+  /// Selects and optionally transforms attributes of an SvgNode.
+  /// </summary>
+  /// <param name="predicate">A function that takes an attribute key-value pair and returns a boolean indicating whether the attribute should be selected.</param>
+  /// <param name="transform">An optional function to transform the attribute key and value. If null, the original key-value pairs are kept.</param>
+  /// <returns>The modified SvgNode.</returns>
+  public SvgNode SelectAttributes(
+    Func<KeyValuePair<string, string>, bool> predicate,
+    Func<string, string, (string, string)>? transform = null)
+  {
+    var updatedAttributes = new Dictionary<string, string>();
+
+    foreach(var attr in Attributes)
+    {
+      if(predicate(attr))
+      {
+        if(transform != null)
+        {
+          (string newKey, string newValue) = transform(attr.Key, attr.Value);
+          updatedAttributes[newKey] = newValue;
+        }
+        else
+        {
+          updatedAttributes[attr.Key] = attr.Value;
+        }
+      }
+      else
+      {
+        updatedAttributes[attr.Key] = attr.Value;
+      }
+    }
+
+    Attributes = updatedAttributes;
+    return this;
+  }
+  
 
   /// <summary>
   /// Converts this node and its children to an <see cref="XElement"/>.

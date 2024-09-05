@@ -11,7 +11,7 @@ public static partial class SvgOptimizer
   public static SvgQueryBuilder RemoveEmptyContainers(this SvgQueryBuilder builder)
   {
     RemoveEmptyContainersInternal(builder.Ast.Root);
-    return builder;
+    return builder.Continue();
   }
 
 
@@ -31,7 +31,7 @@ public static partial class SvgOptimizer
       CollapseGroupsInternal(group);
     }
     
-    return builder;
+    return builder.Continue();
   }
 
 
