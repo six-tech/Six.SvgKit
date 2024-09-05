@@ -7,6 +7,7 @@
 
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
+        <RootNamespace>Template.Projects.Test.Unit</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -23,7 +24,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\libs\Template.Project\Template.Project.csproj" />
+      <ProjectReference Include="..\..\libs\Six.SvgKit.Optimizer\Six.SvgKit.Optimizer.csproj" />
+      <ProjectReference Include="..\..\libs\Six.SvgKit\Six.SvgKit.csproj" />
     </ItemGroup>
 
 </Project>

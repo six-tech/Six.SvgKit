@@ -1,15 +1,15 @@
 <!-- Directory.Build.props for libraries -->
 <Project>
     <PropertyGroup>
-        <LangVersion>12</LangVersion>
+        <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <OutputType>Library</OutputType>
         <NoWarn>CS1591;CS0649;CS0169;CA1050;CA1822;CA2211;IDE1006</NoWarn>        
         
         <!-- Global Version -->
-        <RayPackageVersion>1.0.0-alpha.1</RayPackageVersion>
-        <Version>$(RayPackageVersion)</Version>
+        <SixPackageVersion>1.0.0-alpha.1</SixPackageVersion>
+        <Version>$(SixPackageVersion)</Version>
         
         <!-- Global Packaging Info -->
         <IsPackable>true</IsPackable>
