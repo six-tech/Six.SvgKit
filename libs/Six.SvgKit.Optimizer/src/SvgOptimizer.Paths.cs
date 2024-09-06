@@ -43,7 +43,7 @@ public static partial class SvgOptimizer
       root.AddChild(mergedPath);
     }
 
-    return builder.Continue();
+    return builder;
   }
 
   
@@ -66,6 +66,10 @@ public static partial class SvgOptimizer
 
     return builder;
   }
+  
+  
+  // PRIVATE
+  // ----------------------------------------------------------------------------------------------------------
   
   // Helper function to merge path commands in path data
   static string MergePathDataCommands(string pathData)

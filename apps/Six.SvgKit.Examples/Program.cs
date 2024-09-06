@@ -73,6 +73,8 @@ var result = Svg
   {
     Console.WriteLine($"Byte size before: {before}");
     Console.WriteLine($"Byte size after: {after}");
-  })
-  .ToSvg();
+  });
+  
+  
+  //.ToSvg();
 Console.WriteLine($"SVG string is: {result}");

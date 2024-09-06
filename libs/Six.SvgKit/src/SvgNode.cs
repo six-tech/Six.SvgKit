@@ -1,4 +1,5 @@
 ﻿using System.Xml.Linq;
+using AngleSharp.Dom;
 using JetBrains.Annotations;
 
 namespace Six.SvgKit;
@@ -138,51 +139,38 @@ public record SvgNode
   }
   
 
-  /// <summary>
-  /// Converts this node and its children to an <see cref="XElement"/>.
-  /// </summary>
-  /// <param name="isRoot">Indicates whether this node is the root of the SVG document.</param>
-  /// <returns>An <see cref="XElement"/> representing this node and its children.</returns>
-  public XElement ToXElement(bool isRoot = false)
+  public IElement ToAngleSharpElement(bool isRoot = false)
   {
-    XElement element;
-    XNamespace svgNs = "http://www.w3.org/2000/svg";
+    var document = Svg.Ast.Document; // Get the AngleSharp document from the AST
 
-    // Deal with root nodes and other nodes separately
-    // On root note add/remove namespace attribute if needed (Svg.RemoveNamespace)
-    if(isRoot)
+    // Create the element
+    var element = isRoot 
+      ? document.CreateElement("svg") 
+      : document.CreateElement(Name);
+
+    // Set attributes
+    foreach (var attr in Attributes)
     {
-      if(Svg.RemoveNamespace)
+      // Handle xlink namespace attributes
+      if (attr.Key.StartsWith("xlink:"))
       {
-        element = new XElement("svg");
+        element.SetAttribute("http://www.w3.org/1999/xlink", attr.Key.Substring(6), attr.Value); 
       }
       else
       {
-        element = new XElement(svgNs + "svg");
-        element.Add(new XAttribute("xmlns", svgNs.NamespaceName));
-      }
-    }
-    else
-    {
-      element = new XElement(Svg.RemoveNamespace ? Name : svgNs + Name);
-    }
-
-    foreach(var attr in Attributes)
-    {
-      if(attr.Key != "xmlns") // Avoid adding xmlns attribute to non-root elements
-      {
-        element.SetAttributeValue(attr.Key, attr.Value);
+        element.SetAttribute(attr.Key, attr.Value);
       }
     }
 
-    foreach(var child in Children)
+    // Add children recursively
+    foreach (var child in Children)
     {
-      element.Add(child.ToXElement());
+      element.AppendChild(child.ToAngleSharpElement());
     }
 
     return element;
   }
-
+  
   /// <summary>
   /// Determines whether the specified <see cref="SvgNode"/> is equal to the current <see cref="SvgNode"/>.
   /// </summary>

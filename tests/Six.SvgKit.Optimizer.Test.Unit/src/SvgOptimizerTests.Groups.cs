@@ -14,12 +14,13 @@ public partial class SvgOptimizerTests
 
     // Assert
     var result = builder.Build();
-    var resultXml = result.ToXDocument().Root;
+    var rootNode = result.ModifiedSvg.Ast.Root;
     
-    Assert.NotNull(resultXml);
-    Assert.Single(resultXml.Elements());
-    Assert.Equal("g", resultXml.Elements().First().Name.LocalName);
-    Assert.Single(resultXml.Elements().First().Elements());
+    Assert.NotNull(rootNode);
+    
+    Assert.Single(rootNode.Children);
+    Assert.Equal("g", rootNode.Children.First().Name);
+    Assert.Single(rootNode.Children.First().Children);
   }
   
   // CollapseGroups tests
@@ -35,10 +36,10 @@ public partial class SvgOptimizerTests
 
     // Assert
     var result = builder.Build();
-    var svgElement = result.ToXDocument().Root;
-
-    Assert.NotNull(svgElement);
-    Assert.DoesNotContain(svgElement.Descendants(), e => e.Name.LocalName == "g");
+    var rootNode = result.ModifiedSvg.Ast.Root;
+    
+    Assert.NotNull(rootNode);
+    Assert.DoesNotContain(rootNode.Children, e => e.Name == "g");
   }
 
   [Fact]
@@ -53,17 +54,17 @@ public partial class SvgOptimizerTests
 
     // Assert
     var result = builder.Build();
-    var svgElement = result.ToXDocument().Root;
+    var rootNode = result.ModifiedSvg.Ast.Root;
     
-    Assert.NotNull(svgElement);
+    Assert.NotNull(rootNode);
     
     // Group should be removed and its attributes should be moved to the inner rect element
-    var rectElement = svgElement.Descendants().First(e => e.Name.LocalName == "rect");
-    Assert.Equal("red", rectElement.Attribute("fill")?.Value);
+    var rectElement = rootNode.Children.First(e => e.Name == "rect");
+    Assert.Equal("red", rectElement.Attributes["fill"]);
     
     // Nested group should be removed and its attributes should be moved to the inner rect element
-    var innerRect = rectElement.Descendants().First(e => e.Name.LocalName == "rect");
-    Assert.Equal("red", innerRect.Attribute("fill")?.Value);
+    var innerRect = rectElement.Children.First(e => e.Name == "rect");
+    Assert.Equal("red", rectElement.Attributes["fill"]);
   }
 
   [Fact]
@@ -78,10 +79,10 @@ public partial class SvgOptimizerTests
 
     // Assert
     var result = builder.Build();
-    var svgElement = result.ToXDocument().Root;
+    var rootNode = result.ModifiedSvg.Ast.Root;
     
-    Assert.NotNull(svgElement);
-    Assert.Contains(svgElement.Descendants(), e => e.Name.LocalName == "g");
+    Assert.NotNull(rootNode);
+    Assert.Contains(rootNode.Children, e => e.Name == "g");
   }
 
   [Fact]
@@ -96,10 +97,10 @@ public partial class SvgOptimizerTests
 
     // Assert
     var result = builder.Build();
-    var svgElement = result.ToXDocument().Root;
+    var rootNode = result.ModifiedSvg.Ast.Root;
     
-    Assert.NotNull(svgElement);
-    Assert.Contains(svgElement.Descendants(), e => e.Name.LocalName == "g");
+    Assert.NotNull(rootNode);
+    Assert.Contains(rootNode.Children, e => e.Name == "g");
   }
 
   [Fact]
@@ -114,10 +115,10 @@ public partial class SvgOptimizerTests
 
     // Assert
     var result = builder.Build();
-    var svgElement = result.ToXDocument().Root;
+    var rootNode = result.ModifiedSvg.Ast.Root;
     
-    Assert.NotNull(svgElement);
-    Assert.Contains(svgElement.Descendants(), e => e.Name.LocalName == "g");
+    Assert.NotNull(rootNode);
+    Assert.Contains(rootNode.Children, e => e.Name == "g");
   }
 
   [Fact]
@@ -132,9 +133,9 @@ public partial class SvgOptimizerTests
 
     // Assert
     var result = builder.Build();
-    var svgElement = result.ToXDocument().Root;
+    var rootNode = result.ModifiedSvg.Ast.Root;
     
-    Assert.NotNull(svgElement);
-    Assert.Contains(svgElement.Descendants(), e => e.Name.LocalName == "g");
+    Assert.NotNull(rootNode);
+    Assert.Contains(rootNode.Children, e => e.Name == "g");
   }
 }

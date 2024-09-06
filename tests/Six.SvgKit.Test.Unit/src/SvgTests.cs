@@ -16,15 +16,6 @@ public class SvgTests
   }
 
   [Fact]
-  public void FromXDocument_CreatesSvgInstance()
-  {
-    var xDoc = XDocument.Parse(TestSvgString);
-    var svg = Svg.FromXDocument(xDoc);
-    Assert.NotNull(svg);
-    Assert.IsType<Svg>(svg);
-  }
-
-  [Fact]
   public void WithId_SetsSvgId()
   {
     var svg = Svg.FromString(TestSvgString);
@@ -43,17 +34,6 @@ public class SvgTests
     Assert.IsType<Svg>(clone);
     Assert.Equal(original.Id, clone.Id);
     Assert.NotSame(original, clone);
-  }
-
-  [Fact]
-  public void ToXDocument_ReturnsValidXDocument()
-  {
-    var svg = Svg.FromString(TestSvgString);
-    var xDoc = svg.ToXDocument();
-
-    Assert.NotNull(xDoc);
-    Assert.IsType<XDocument>(xDoc);
-    Assert.Equal("svg", xDoc.Root?.Name.LocalName);
   }
 
   [Fact]

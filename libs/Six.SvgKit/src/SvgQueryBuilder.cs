@@ -258,45 +258,6 @@ public class SvgQueryBuilder
     return this;
   }
 
-  
-  /// <summary>
-  /// Removes an attribute from SVG nodes that match the current predicate.
-  /// </summary>
-  /// <param name="key">The attribute name.</param>
-  /// <returns>The current <see cref="SvgQueryBuilder"/> instance.</returns>
-  public SvgQueryBuilder RemoveAttribute(string key)
-  {
-    ModifyNodes(Ast.Root, n => n.RemoveAttribute(key));
-    return this;
-  }
-
-
-  /// <summary>
-  /// Conditionally sets an attribute on nodes that match the predicate.
-  /// </summary>
-  /// <example>
-  /// Set the fill of circles with radius > 10 to "blue"
-  /// <code>
-  /// builder.SetAttributeIf(n => n.Name == "circle" &amp;&amp; int.Parse(n.Attributes.GetValueOrDefault("r", "0")) &gt; 10, "fill", "blue");
-  /// </code>
-  /// </example>
-  /// <param name="predicate"></param>
-  /// <param name="key"></param>
-  /// <param name="value"></param>
-  /// <returns></returns>
-  public SvgQueryBuilder SetAttributeIf(Func<SvgNode, bool> predicate, string key, string value)
-  {
-    ModifyNodes(Ast.Root, n =>
-    {
-      if(predicate(n))
-      {
-        n.SetAttribute(key, value);
-      }
-    });
-    return this;
-  }
-
-
   /// <summary>
   /// Sets multiple attributes on all selected SVG nodes.
   /// </summary>
@@ -318,6 +279,18 @@ public class SvgQueryBuilder
         n.SetAttribute(attr.Key, attr.Value);
       }
     });
+    return this;
+  }
+  
+  
+  /// <summary>
+  /// Removes an attribute from SVG nodes that match the current predicate.
+  /// </summary>
+  /// <param name="key">The attribute name.</param>
+  /// <returns>The current <see cref="SvgQueryBuilder"/> instance.</returns>
+  public SvgQueryBuilder RemoveAttribute(string key)
+  {
+    ModifyNodes(Ast.Root, n => n.RemoveAttribute(key));
     return this;
   }
 

@@ -77,13 +77,6 @@ public record SvgResult
   // ----------------------------------------------------------------------------------------------------------
 
   /// <summary>
-  /// Converts the modified SVG to an <see cref="XDocument"/>.
-  /// </summary>
-  /// <returns>An <see cref="XDocument"/> representing the modified SVG.</returns>
-  [MethodImpl(MethodImplOptions.AggressiveInlining)]
-  public XDocument ToXDocument() => ModifiedSvg.ToXDocument();
-
-  /// <summary>
   /// Saves the modified SVG to a file.
   /// </summary>
   /// <param name="path">The path to save the file to.</param>

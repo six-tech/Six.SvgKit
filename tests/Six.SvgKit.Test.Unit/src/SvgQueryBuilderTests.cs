@@ -62,11 +62,11 @@ public class SvgQueryBuilderTests
 
     // Assert
     var result = builder.Build();
-    var resultXml = result.ToXDocument().Root;
-
-    Assert.NotNull(resultXml);
-    Assert.Single(resultXml.Elements());
-    Assert.Equal("circle", resultXml.Elements().First().Name.LocalName);
+    var rootNode = result.ModifiedSvg.Ast.Root;
+    
+    Assert.NotNull(rootNode);
+    Assert.Single(rootNode.Children);
+    Assert.Equal("circle", rootNode.Children.First().Name);
   }
 
   [Fact]
@@ -83,12 +83,12 @@ public class SvgQueryBuilderTests
 
     // Assert
     var result = builder.Build();
-    var resultXml = result.ToXDocument().Root;
+    var rootNode = result.ModifiedSvg.Ast.Root;
+    
+    Assert.NotNull(rootNode);
 
-    Assert.NotNull(resultXml);
-
-    var rectElement = resultXml.Elements().First(e => e.Name.LocalName == "rect");
-    Assert.Equal("100", rectElement.Attribute("width")?.Value);
+    var rectElement = rootNode.Children.First(e => e.Name == "rect");
+    Assert.Equal("100", rectElement.Attributes["width"]);
   }
 
   [Fact]
@@ -125,44 +125,20 @@ public class SvgQueryBuilderTests
 
     // Assert
     var result = builder.Build();
-    var resultXml = result.ToXDocument().Root;
+    var rootNode = result.ModifiedSvg.Ast.Root;
+    
+    Assert.NotNull(rootNode);
 
-    Assert.NotNull(resultXml);
+    var smallRect = rootNode.Children
+      .First(e => e.Name == "rect" && int.Parse(e.Attributes["width"]) == 50);
+    
+    var largeRect = rootNode.Children
+      .First(e => e.Name == "rect" && int.Parse(e.Attributes["width"]) == 150);
 
-    var smallRect = resultXml.Elements()
-      .First(e => e.Name.LocalName == "rect" && int.Parse(e.Attribute("width")!.Value) == 50);
-    var largeRect = resultXml.Elements()
-      .First(e => e.Name.LocalName == "rect" && int.Parse(e.Attribute("width")!.Value) == 150);
-
-    Assert.Equal("blue", smallRect.Attribute("fill")?.Value);
-    Assert.Equal("red", largeRect.Attribute("fill")?.Value);
+    Assert.Equal("blue", smallRect.Attributes["fill"]);
+    Assert.Equal("red", largeRect.Attributes["fill"]);
   }
 
-  [Fact]
-  public void SetAttributeIf_SetsAttributeBasedOnCondition()
-  {
-    // Arrange
-    var svg = Svg.FromString("<svg><circle r='5'/><circle r='15'/></svg>");
-    var builder = new SvgQueryBuilder(svg);
-
-    // Act
-    builder.SetAttributeIf(n => n.Name == "circle" && int.Parse(n.Attributes.GetValueOrDefault("r", "0")) > 10, "fill",
-      "blue");
-
-    // Assert
-    var result = builder.Build();
-    var resultXml = result.ToXDocument().Root;
-
-    Assert.NotNull(resultXml);
-
-    var smallCircle = resultXml.Elements()
-      .First(e => e.Name.LocalName == "circle" && int.Parse(e.Attribute("r")!.Value) == 5);
-    var largeCircle = resultXml.Elements()
-      .First(e => e.Name.LocalName == "circle" && int.Parse(e.Attribute("r")!.Value) == 15);
-
-    Assert.Null(smallCircle.Attribute("fill"));
-    Assert.Equal("blue", largeCircle.Attribute("fill")?.Value);
-  }
 
   [Fact]
   public void SetAttributes_SetsMultipleAttributes()
@@ -177,15 +153,15 @@ public class SvgQueryBuilderTests
 
     // Assert
     var result = builder.Build();
-    var resultXml = result.ToXDocument().Root;
+    var rootNode = result.ModifiedSvg.Ast.Root;
+    
+    Assert.NotNull(rootNode);
 
-    Assert.NotNull(resultXml);
-
-    var pathElement = resultXml.Elements().First(e => e.Name.LocalName == "path");
+    var pathElement = rootNode.Children.First(e => e.Name == "path");
 
     Assert.NotNull(pathElement);
-    Assert.Equal("yellow", pathElement.Attribute("fill")?.Value);
-    Assert.Equal("black", pathElement.Attribute("stroke")?.Value);
+    Assert.Equal("yellow", pathElement.Attributes["fill"]);
+    Assert.Equal("black", pathElement.Attributes["stroke"]);
   }
 
   [Fact]
@@ -200,15 +176,15 @@ public class SvgQueryBuilderTests
 
     // Assert
     var result = builder.Build();
-    var resultXml = result.ToXDocument().Root;
+    var rootNode = result.ModifiedSvg.Ast.Root;
+    
+    Assert.NotNull(rootNode);
 
-    Assert.NotNull(resultXml);
-
-    var filledRect = resultXml.Elements().First(e => e.Name.LocalName == "rect" && e.Attribute("fill") != null);
-    var nonFilledRect = resultXml.Elements().First(e => e.Name.LocalName == "rect" && e.Attribute("fill") == null);
-
-    Assert.Equal("blue", filledRect.Attribute("stroke")?.Value);
-    Assert.Null(nonFilledRect.Attribute("stroke"));
+    var filledRect = rootNode.Children[0];
+    var nonFilledRect = rootNode.Children[1];
+    
+    Assert.Equal("blue", filledRect.Attributes["stroke"]);
+    Assert.False(nonFilledRect.Attributes.TryGetValue("stroke", out _));
   }
 
   [Fact]
@@ -242,13 +218,13 @@ public class SvgQueryBuilderTests
 
     // Assert
     var result = builder.Build();
-    var resultXml = result.ToXDocument().Root;
+    var rootNode = result.ModifiedSvg.Ast.Root;
+    
+    Assert.NotNull(rootNode);
 
-    Assert.NotNull(resultXml);
+    var textElement = rootNode.Children.First(e => e.Name == "text");
 
-    var textElement = resultXml.Elements().First(e => e.Name.LocalName == "text");
-
-    Assert.Equal("14px", textElement.Attribute("font-size")?.Value);
+    Assert.Equal("14px", textElement.Attributes["font-size"]);
   }
 
 

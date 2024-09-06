@@ -2,6 +2,8 @@
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
+using AngleSharp.Dom;
+using AngleSharp.Html;
 using JetBrains.Annotations;
 
 namespace Six.SvgKit;
@@ -42,15 +44,6 @@ public class Svg
   // ----------------------------------------------------------------------------------------------------------
 
   /// <summary>
-  /// Initializes a new instance of the <see cref="Svg"/> class with the specified <see cref="XDocument"/>.
-  /// </summary>
-  /// <param name="svgDoc">The SVG document.</param>
-  internal Svg(XDocument svgDoc)
-  {
-    Ast = new SvgAst(this, svgDoc);
-  }
-
-  /// <summary>
   /// Initializes a new instance of the <see cref="Svg"/> class with the specified SVG string.
   /// </summary>
   /// <param name="svgString">The SVG string.</param>
@@ -88,7 +81,7 @@ public class Svg
   /// <returns>Returns a newly created <see cref="Svg"/> instance.</returns>
   public Svg Clone()
   {
-    var clone = new Svg(Ast.XDoc);
+    var clone = new Svg(ToSvg());
 
     if(string.IsNullOrEmpty(Id) == false)
     {
@@ -98,18 +91,18 @@ public class Svg
     return clone;
   }
 
-  /// <summary>
-  /// Converts the SVG document to an <see cref="XDocument"/>.
-  /// </summary>
-  /// <returns>An <see cref="XDocument"/> representing the SVG document.</returns>
-  public XDocument ToXDocument()
-  {
-    XDocument doc = new(
-      Ast.Root.ToXElement(true)
-    );
-
-    return doc;
-  }
+  // /// <summary>
+  // /// Converts the SVG document to an <see cref="XDocument"/>.
+  // /// </summary>
+  // /// <returns>An <see cref="XDocument"/> representing the SVG document.</returns>
+  // public XDocument ToXDocument()
+  // {
+  //   XDocument doc = new(
+  //     Ast.Root.ToXElement(true)
+  //   );
+  //
+  //   return doc;
+  // }
 
   /// <summary>
   /// Saves the SVG document to a file.
@@ -118,15 +111,7 @@ public class Svg
   /// <param name="formatting">The formatting options for the XML writer.</param>
   public void ToFile(string path, Formatting formatting = Formatting.Indented)
   {
-    var doc = ToXDocument();
-
-    var settings = new XmlWriterSettings
-    {
-      Encoding = Encoding.UTF8, Indent = formatting == Formatting.Indented, OmitXmlDeclaration = OmmitXmlDeclaration
-    };
-
-    using var writer = XmlWriter.Create(path, settings);
-    doc.Save(writer);
+    // GEMINI: Use ToSvg to create a string and then write it to a file
   }
 
   /// <summary>
@@ -136,18 +121,25 @@ public class Svg
   /// <returns>A string representing the SVG document.</returns>
   public string ToSvg(Formatting formatting = Formatting.Indented)
   {
-    var settings = new XmlWriterSettings
-    {
-      Encoding = Encoding.UTF8, Indent = formatting == Formatting.Indented, OmitXmlDeclaration = OmmitXmlDeclaration
-    };
-
     using var stringWriter = new StringWriter();
-    using(var xmlWriter = XmlWriter.Create(stringWriter, settings))
+    
+    var doc = Ast.Root.ToAngleSharpElement();
+    if(doc is null)
     {
-      var doc = new XDocument();
-      var root = Ast.Root.ToXElement(true);
-      doc.Add(root);
-      doc.WriteTo(xmlWriter);
+      throw new NullReferenceException("Failed to convert the SVG document to an AngleSharp element");
+    }
+    
+    if (CompressOutput)
+    {
+      // Minify the output using a custom formatter
+      var formatter = new MinifyMarkupFormatter();
+      doc.ToHtml(stringWriter, formatter);
+    }
+    else
+    {
+      // Unminified output
+      var formatter = new PrettyMarkupFormatter();
+      doc.ToHtml(stringWriter, formatter);
     }
 
     return stringWriter.ToString();
@@ -164,23 +156,20 @@ public class Svg
   // ----------------------------------------------------------------------------------------------------------
 
   /// <summary>
-  /// Creates a new <see cref="Svg"/> instance from an <see cref="XDocument"/>.
-  /// </summary>
-  /// <param name="doc">The SVG document.</param>
-  /// <returns>A new <see cref="Svg"/> instance.</returns>
-  public static Svg FromXDocument(XDocument doc)
-  {
-    return new Svg(doc);
-  }
-
-  /// <summary>
   /// Creates a new <see cref="Svg"/> instance from a file.
   /// </summary>
   /// <param name="path">The path to the SVG file.</param>
   /// <returns>A new <see cref="Svg"/> instance.</returns>
   public static Svg FromFile(string path)
   {
-    return new Svg(XDocument.Load(path));
+    // Check if the file exists
+    if (!File.Exists(path))
+    {
+      throw new FileNotFoundException($"The file at path '{path}' does not exist.");
+    }
+
+    // Read the entire content of the SVG file into a string
+    return new Svg(File.ReadAllText(path));
   }
 
   /// <summary>

@@ -82,7 +82,7 @@ public static partial class SvgOptimizer
       }) // This is for xlink:href attribute. Xml parser sees it as href
       .RemoveNodes();
 
-    return builder.Continue();
+    return builder;
   }
 
 

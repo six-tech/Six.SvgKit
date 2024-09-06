@@ -1,4 +1,5 @@
-﻿using System.Xml.Linq;
+﻿using AngleSharp;
+using AngleSharp.Dom;
 using JetBrains.Annotations;
 
 namespace Six.SvgKit;
@@ -7,7 +8,7 @@ namespace Six.SvgKit;
 public class SvgAst
 {
   // MEMBERS
-  internal readonly XDocument XDoc;
+  internal readonly IDocument Document; // AngleSharp document
 
   #region PROPERTIES
   
@@ -26,24 +27,7 @@ public class SvgAst
   
   // CTOR / DISPOSAL
   // ----------------------------------------------------------------------------------------------------------
-  /// <summary>
-  /// Initializes a new instance of the <see cref="SvgAst"/> class using an SVG object and an XDocument.
-  /// </summary>
-  /// <param name="svg">The SVG object.</param>
-  /// <param name="svgDoc">The XDocument representing the SVG document.</param>
-  /// <exception cref="ArgumentException">Thrown when the SVG document or its root is null.</exception>
-  public SvgAst(Svg svg, XDocument svgDoc)
-  {
-    if(svgDoc is null || svgDoc.Root is null)
-    {
-      throw new ArgumentException("SVG document is null reference", nameof(svgDoc));
-    }
-
-    Svg = svg;
-    XDoc = svgDoc;
-    Root = BuildAst(Svg, XDoc.Root);
-  }
-
+  
   /// <summary>
   /// Initializes a new instance of the <see cref="SvgAst"/> class using an SVG object and an SVG string.
   /// </summary>
@@ -52,15 +36,15 @@ public class SvgAst
   /// <exception cref="ArgumentException">Thrown when the SVG document or its root is null.</exception>
   public SvgAst(Svg svg, string svgString)
   {
-    XDoc = XDocument.Parse(svgString);
-
-    if(XDoc is null || XDoc.Root is null)
-    {
-      throw new ArgumentException("SVG document is null reference", nameof(XDoc));
-    }
+    // Use AngleSharp to parse the SVG string
+    var config = Configuration.Default.WithXml();
+    var context = BrowsingContext.New(config);
+    
+    Document = context.OpenAsync(res => res.Content(svgString).Header("Content-Type", "text/xml")).Result;
+    //Document = context.OpenAsync(req => req.Content(svgString)).Result;
 
     Svg = svg;
-    Root = BuildAst(Svg, XDoc.Root);
+    Root = BuildAst(Svg, Document.DocumentElement); // Build AST from AngleSharp document
   }
 
 
@@ -72,16 +56,16 @@ public class SvgAst
   /// <param name="svg">The SVG object.</param>
   /// <param name="element">The root XElement of the SVG document.</param>
   /// <returns>The root node of the SVG AST.</returns>
-  SvgNode BuildAst(Svg svg, XElement element)
+  SvgNode BuildAst(Svg svg, IElement element)
   {
-    SvgNode node = new(svg, element.Name.LocalName);
+    var node = new SvgNode(svg, element.TagName.ToLowerInvariant()); // Use lowercase tag names
 
-    foreach(var attribute in element.Attributes())
+    foreach (var attribute in element.Attributes)
     {
-      node.SetAttribute(attribute.Name.LocalName, attribute.Value);
+      node.SetAttribute(attribute.Name, attribute.Value); 
     }
 
-    foreach(var childElement in element.Elements())
+    foreach (var childElement in element.Children)
     {
       node.AddChild(BuildAst(svg, childElement));
     }

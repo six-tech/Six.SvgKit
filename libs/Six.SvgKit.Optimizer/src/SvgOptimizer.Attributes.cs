@@ -9,7 +9,7 @@ public static partial class SvgOptimizer
   /// <returns>The modified SvgQueryBuilder instance.</returns>
   public static SvgQueryBuilder RemoveViewBoxAttribute(this SvgQueryBuilder builder)
   {
-    builder.RemoveAttribute("viewBox").Continue();
+    builder.RemoveAttribute("viewBox");
     return builder;
   }
 
@@ -25,8 +25,8 @@ public static partial class SvgOptimizer
       .SelectAttributes(
         _ => true,
         (node, key, value) => node.SetAttribute(key, value.Replace(" ", "").Trim())
-      )
-      .Continue();
+      );
+    
     return builder;
   }
 
@@ -53,8 +53,7 @@ public static partial class SvgOptimizer
           {
             node.RemoveAttribute(key);
           }
-        })
-      .Continue();
+        });
 
     return builder;
   }
