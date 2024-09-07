@@ -42,12 +42,12 @@ public class SvgNodeTests
     node.SetAttribute("height", "50");
 
     // Act
-    var xElement = node.ToXElement();
+    var xElement = node.ToAngleSharpElement();
 
     // Assert
-    Assert.Equal("rect", xElement.Name.LocalName);
-    Assert.Equal("100", xElement.Attribute("width")?.Value);
-    Assert.Equal("50", xElement.Attribute("height")?.Value);
+    Assert.Equal("rect", xElement.LocalName);
+    Assert.Equal("100", xElement.Attributes.GetNamedItem("width")!.Value);
+    Assert.Equal("50", xElement.Attributes.GetNamedItem("height")!.Value);
   }
 
   

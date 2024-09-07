@@ -14,10 +14,10 @@ public partial class SvgOptimizerTests
 
     // Assert
     var result = builder.Build();
-    var resultXml = result.ToXDocument().Root;
+    var rootNode = result.ModifiedSvg.Ast.Root;
     
-    Assert.NotNull(resultXml);
-    Assert.Null(resultXml.Attribute("viewBox"));
+    Assert.NotNull(rootNode);
+    Assert.False(rootNode.Attributes.ContainsKey("viewBox"));
   }
   
   [Fact]

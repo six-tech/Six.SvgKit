@@ -429,3 +429,5 @@ package-logs/
 [Aa]rtifact*/
 .[Aa]rtifacts*/
 .artifacts/
+
+svg

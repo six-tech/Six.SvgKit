@@ -9,8 +9,14 @@ public static partial class SvgOptimizer
   /// <returns>The modified SvgQueryBuilder instance.</returns>
   public static SvgQueryBuilder RemoveViewBoxAttribute(this SvgQueryBuilder builder)
   {
-    builder.RemoveAttribute("viewBox").Continue();
-    return builder;
+    builder
+      .Select(n => n.Name == "svg")
+      .Transform(n =>
+      {
+        n.RemoveAttribute("viewBox");
+      });
+    
+    return builder.Continue();
   }
 
   /// <summary>
@@ -20,13 +26,20 @@ public static partial class SvgOptimizer
   /// <returns></returns>
   public static SvgQueryBuilder CleanupAttributes(this SvgQueryBuilder builder)
   {
+    string[] ignored = ["viewBox", "path"];
+    
     builder
       .Select(_ => true)
       .SelectAttributes(
         _ => true,
-        (node, key, value) => node.SetAttribute(key, value.Replace(" ", "").Trim())
-      )
-      .Continue();
+        (node, key, value) =>
+        {
+          if(ignored.Contains(key) == false)
+          {
+            node.SetAttribute(key, value.Trim()); // .Replace(" ", "")); <-- BUG! Breaks the SVG 
+          }
+        });
+    
     return builder;
   }
 
@@ -53,8 +66,7 @@ public static partial class SvgOptimizer
           {
             node.RemoveAttribute(key);
           }
-        })
-      .Continue();
+        });
 
     return builder;
   }

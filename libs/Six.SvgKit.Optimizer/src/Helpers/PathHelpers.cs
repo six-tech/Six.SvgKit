@@ -1,48 +1,126 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text.RegularExpressions;
+using Svg;
+using Svg.Pathing;
 
 namespace Six.SvgKit.Optimizer;
 
-/// <summary>
-/// Provides helper methods for SVG path data manipulation.
-/// </summary>
-public static class PathHelpers
+public static class SvgPathHelpers
 {
-  /// <summary>
-  /// Merges a list of SVG path data strings into a single path data string.
-  /// </summary>
-  /// <example>
-  /// <para>How it works:</para>
-  /// <para>1. Extracts the 'd' attribute from each path.</para>
-  /// <para>2. For each path after the first: </para>
-  /// <para>2.1. If it doesn't start with an "M" command, prepend "M".</para>
-  /// <para>2.2. Add its data to the combined path data.</para>
-  /// <para>3. Join all path data with spaces between them.</para>
-  /// </example>
-  /// <remarks>
-  /// <para><b>This approach has limitations and it's suitable for simple vectors like monochromatic icons</b></para>
-  /// <para>1. It doesn't handle different fill/stroke properties for different paths.</para>
-  /// <para>2. It may not be suitable for paths that rely on their order for layering effects.</para>
-  /// <para>3. Some complex SVG features (like clipping paths) might not work correctly after merging.</para>
-  /// </remarks>
-  /// <param name="pathDatas">A list of SVG path data strings to merge.</param>
-  /// <returns>A single merged SVG path data string.</returns>
-  public static string MergePaths(List<string> pathDatas)
+  public static void MergePaths(List<SvgNode> pathNodes)
   {
-    if (pathDatas.Count == 0) return string.Empty;
+    if(pathNodes.Count == 0) return;
 
-    var mergedPath = new StringBuilder(pathDatas[0].Trim());
+    var pathGroups = pathNodes
+      .GroupBy(GetPathStyleKey)
+      .ToList();
 
-    for (int i = 1; i < pathDatas.Count; i++)
+    // Get first node and get it's parent. This parent will 
+    // be used to append the merged path elements
+    // If the node has no parent the passed node will be used as root
+    var parentNode = pathNodes.FirstOrDefault()?.Parent
+                     ?? throw new ArgumentException("First node doesn't have a parent node");
+
+    // Iterate over each group of paths and combine the paths in the current group
+    foreach(var pathGroup in pathGroups)
     {
-      string pathData = pathDatas[i].Trim();
-      if (!pathData.StartsWith("M", StringComparison.OrdinalIgnoreCase))
-      {
-        mergedPath.Append(" M");
-      }
-
-      mergedPath.Append(' ').Append(pathData);
+      MergePathsInGroup(pathGroup, parentNode);
     }
 
-    return mergedPath.ToString();
+    // Replace the original paths with the merged paths
+    foreach(var nodeToDelete in pathNodes)
+    {
+      nodeToDelete.Remove();
+    }
+  }
+
+
+  public static void RoundPathSegments(List<SvgNode> pathNodes, int decimalPlaces = 3)
+  {
+    foreach(var pathNode in pathNodes)
+    {
+      if(pathNode.Name.Equals("path", StringComparison.OrdinalIgnoreCase) == false) continue;
+
+      var pathData = pathNode.Attributes.GetValueOrDefault("d");
+
+      if(string.IsNullOrEmpty(pathData)) continue;
+
+      var optimizedPathData = OptimizePath(pathData, decimalPlaces);
+      pathNode.SetAttribute("d", optimizedPathData);
+    }
+  }
+
+
+  static string OptimizePath(string pathData, int decimalPlaces = 3)
+  {
+    // This regex matches numbers (including scientific notation)
+    string pattern = @"(-?\d*\.?\d+(?:[eE][-+]?\d+)?)";
+        
+    return Regex.Replace(pathData, pattern, match =>
+    {
+      if (float.TryParse(match.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out float number))
+      {
+        // Round to the specified number of decimal places
+        return Math.Round(number, decimalPlaces).ToString($"F{decimalPlaces}", CultureInfo.InvariantCulture).TrimEnd('0').TrimEnd('.');
+      }
+      return match.Value; // If parsing fails, return the original value
+    });
+  }
+
+
+
+  // PRIVATE METHODS
+  // ----------------------------------------------------------------------------------------------------------
+
+  static string GetPathStyleKey(SvgNode node)
+  {
+    // Generate a key based on fill and stroke properties
+    var fill = node.Attributes.GetValueOrDefault("fill") ?? "none";
+    var stroke = node.Attributes.GetValueOrDefault("stroke") ?? "none";
+    return $"{fill}-{stroke}";
+  }
+
+  static SvgNode MergePathsInGroup(IGrouping<string, SvgNode> pathGroup, SvgNode parentNode)
+  {
+    // Create a new SvgPathSegmentList to store the merged path segments
+    var mergedPathSegments = new SvgPathSegmentList();
+
+    foreach(var pathNode in pathGroup)
+    {
+      // Get the path data and
+      // Parse the path data into an SvgPathSegmentList
+      // Add the parsed segments to the merged path segments list
+      var pathData = pathNode.Attributes.GetValueOrDefault("d");
+      var pathSegments = SvgPathBuilder.Parse(pathData);
+
+      foreach(var segment in pathSegments)
+      {
+        mergedPathSegments.Add(segment);
+      }
+    }
+
+    // Create a new path node with the merged path data
+    var mergedPathNode = parentNode.CreateChild("path");
+    mergedPathNode.SetAttribute("d", mergedPathSegments.ToString());
+
+    // Copy the style attributes from the first path node in the group
+    var firstPathElement = pathGroup.First();
+
+    CopyAttributes(firstPathElement, mergedPathNode,
+      ["fill", "stroke", "stroke-width", "stroke-linecap", "stroke-linejoin"]);
+
+    return mergedPathNode;
+  }
+
+  static void CopyAttributes(SvgNode source, SvgNode target, string[] attributeNames)
+  {
+    foreach(var attributeName in attributeNames)
+    {
+      var attributeValue = source.Attributes.GetValueOrDefault(attributeName);
+      if(attributeValue != null)
+      {
+        target.SetAttribute(attributeName, attributeValue);
+      }
+    }
   }
 }

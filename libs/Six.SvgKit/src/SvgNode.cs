@@ -1,4 +1,5 @@
 ﻿using System.Xml.Linq;
+using AngleSharp.Dom;
 using JetBrains.Annotations;
 
 namespace Six.SvgKit;
@@ -12,8 +13,8 @@ namespace Six.SvgKit;
 [PublicAPI]
 public record SvgNode
 {
-  static readonly XNamespace _svgNamespace = "http://www.w3.org/2000/svg";
-
+  readonly AttributeDictionary _attributes = [];
+  
   #region PROPERTIES
 
   /// <summary>
@@ -49,7 +50,17 @@ public record SvgNode
   /// <summary>
   /// <see cref="Dictionary{TKey,TValue}"/> of node attributes.
   /// </summary>
-  public Dictionary<string, string> Attributes { get; private set; } = [];
+  public AttributeDictionary Attributes => _attributes;
+  
+  /// <summary>
+  /// Gets if this node is a container node
+  /// </summary>
+  public bool IsContainer => SvgContainers.IsContainer(this);
+  
+  /// <summary>
+  /// Gets if this node is a container node and has children
+  /// </summary>
+  public bool IsContainerWithChildren => SvgContainers.IsContainer(this) && Children.Count > 0;
 
   #endregion
 
@@ -73,36 +84,88 @@ public record SvgNode
   // ----------------------------------------------------------------------------------------------------------
 
   /// <summary>
-  /// Adds a child node to this node.
+  /// Adds a child <see cref="SvgNode"/> to this node.
   /// </summary>
-  /// <param name="child">The child node to add.</param>
+  /// <param name="child">The child <see cref="SvgNode"/> to add.</param>
   public void AddChild(SvgNode child)
   {
     Children.Add(child);
     child.OnAddedToParent(this);
   }
 
+
   /// <summary>
-  /// Sets an attribute on this node.
+  /// Creates a new child <see cref="SvgNode"/> with the specified name and adds it to this node.
+  /// </summary>
+  /// <param name="name">Name (type) of the child <see cref="SvgNode"/></param>
+  /// <returns>Created <see cref="SvgNode"/> instance</returns>
+  public SvgNode CreateChild(string name)
+  {
+    var child = new SvgNode(Svg, name);
+    AddChild(child);
+    return child;
+  }
+
+  /// <summary>
+  /// Removes a specified child <see cref="SvgNode"/> from this node.
+  /// </summary>
+  /// <param name="childNode">The child <see cref="SvgNode"/> to be removed.</param>
+  /// <returns>True if the child node was successfully removed; otherwise, false.</returns>
+  public bool RemoveChild(SvgNode childNode)
+  {
+    if(Children.Contains(childNode) == false)
+      return false;
+
+    Children.Remove(childNode);
+    childNode.OnRemovedFromParent(this);
+    return true;
+  }
+
+
+  /// <summary>
+  /// Removes this <see cref="SvgNode"/> from its parent node.
+  /// </summary>
+  /// <returns>True if the node was successfully removed; otherwise, false.</returns>
+  public bool Remove()
+  {
+    if(Parent is null)
+      return false;
+
+    return Parent.RemoveChild(this);
+  }
+
+
+  /// <summary>
+  /// Sets an attribute on this <see cref="SvgNode"/>.
   /// </summary>
   /// <param name="key">The attribute name.</param>
   /// <param name="value">The attribute value.</param>
   public void SetAttribute(string key, string value)
   {
-    Attributes[key] = value;
+    _attributes[key] = value;
   }
 
+
   /// <summary>
-  /// Removes an attribute from this node.
+  /// Removes an attribute from this <see cref="SvgNode"/>.
   /// </summary>
   /// <param name="key">The attribute name.</param>
   public void RemoveAttribute(string key)
   {
-    Attributes.Remove(key);
+    _attributes.Remove(key);
   }
 
   /// <summary>
-  /// Selects and optionally transforms attributes of an SvgNode.
+  /// Clears all attributes from this <see cref="SvgNode"/>.
+  /// </summary>
+  public void ClearAttributes()
+  {
+    _attributes.Clear();
+  }
+
+
+  /// <summary>
+  /// Selects and optionally transforms attributes of an <see cref="SvgNode"/>.
   /// </summary>
   /// <param name="predicate">A function that takes an attribute key-value pair and returns a boolean indicating whether the attribute should be selected.</param>
   /// <param name="transform">An optional function to transform the attribute key and value. If null, the original key-value pairs are kept.</param>
@@ -133,55 +196,54 @@ public record SvgNode
       }
     }
 
-    Attributes = updatedAttributes;
+    // Clear the existing Attributes and repopulate it
+    _attributes.Clear();
+    foreach(var kvp in updatedAttributes)
+    {
+      _attributes.Add(kvp.Key, kvp.Value);
+    }
+
     return this;
   }
-  
+
 
   /// <summary>
-  /// Converts this node and its children to an <see cref="XElement"/>.
+  /// Converts the current <see cref="SvgNode"/> instance to an AngleSharp <see cref="IElement"/>.
   /// </summary>
-  /// <param name="isRoot">Indicates whether this node is the root of the SVG document.</param>
-  /// <returns>An <see cref="XElement"/> representing this node and its children.</returns>
-  public XElement ToXElement(bool isRoot = false)
+  /// <param name="isRoot">Indicates whether the current node is the root of the SVG document.</param>
+  /// <returns>An <see cref="IElement"/> representing the current <see cref="SvgNode"/>.</returns>
+  public IElement ToAngleSharpElement(bool isRoot = false)
   {
-    XElement element;
-    XNamespace svgNs = "http://www.w3.org/2000/svg";
+    var document = Svg.Ast.Document; // Get the AngleSharp document from the AST
 
-    // Deal with root nodes and other nodes separately
-    // On root note add/remove namespace attribute if needed (Svg.RemoveNamespace)
-    if(isRoot)
+    // Create the element
+    var element = isRoot
+      ? document.CreateElement("svg")
+      : document.CreateElement(Name);
+
+    // Set attributes
+    foreach(var attr in Attributes)
     {
-      if(Svg.RemoveNamespace)
+      // Handle xlink namespace attributes
+      if(attr.Key.StartsWith("xlink:"))
       {
-        element = new XElement("svg");
+        element.SetAttribute("http://www.w3.org/1999/xlink", attr.Key.Substring(6), attr.Value);
       }
       else
       {
-        element = new XElement(svgNs + "svg");
-        element.Add(new XAttribute("xmlns", svgNs.NamespaceName));
-      }
-    }
-    else
-    {
-      element = new XElement(Svg.RemoveNamespace ? Name : svgNs + Name);
-    }
-
-    foreach(var attr in Attributes)
-    {
-      if(attr.Key != "xmlns") // Avoid adding xmlns attribute to non-root elements
-      {
-        element.SetAttributeValue(attr.Key, attr.Value);
+        element.SetAttribute(attr.Key, attr.Value);
       }
     }
 
+    // Add children recursively
     foreach(var child in Children)
     {
-      element.Add(child.ToXElement());
+      element.AppendChild(child.ToAngleSharpElement());
     }
 
     return element;
   }
+
 
   /// <summary>
   /// Determines whether the specified <see cref="SvgNode"/> is equal to the current <see cref="SvgNode"/>.
@@ -210,6 +272,7 @@ public record SvgNode
 
     return true;
   }
+
 
   /// <summary>
   /// Serves as the default hash function.
@@ -242,6 +305,15 @@ public record SvgNode
   internal void OnAddedToParent(SvgNode parent)
   {
     Parent = parent;
+  }
+
+  /// <summary>
+  /// Called when this node has been removed from the parent node.
+  /// </summary>
+  /// <param name="parent">The parent node.</param>
+  internal void OnRemovedFromParent(SvgNode parent)
+  {
+    Parent = null;
   }
 
   /// <summary>

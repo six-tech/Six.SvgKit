@@ -11,7 +11,7 @@ public static partial class SvgOptimizer
   public static SvgQueryBuilder RemoveEmptyContainers(this SvgQueryBuilder builder)
   {
     RemoveEmptyContainersInternal(builder.Ast.Root);
-    return builder.Continue();
+    return builder;
   }
 
 
@@ -30,8 +30,8 @@ public static partial class SvgOptimizer
     {
       CollapseGroupsInternal(group);
     }
-    
-    return builder.Continue();
+
+    return builder;
   }
 
 
@@ -39,25 +39,8 @@ public static partial class SvgOptimizer
   // ----------------------------------------------------------------------------------------------------------
   static void RemoveEmptyContainersInternal(SvgNode node)
   {
-    // A container, as defined in the SVG specifications (https://www.w3.org/TR/SVG11/intro.html#TermContainerElement),
-    // is an SVG element that can have graphical child elements. Container elements include:
-    var emptyGroupNames = new HashSet<string>
-    {
-      "a",
-      "defs",
-      "glyph",
-      "g",
-      "marker",
-      "mask",
-      "missing-glyph",
-      "pattern",
-      "svg",
-      "switch",
-      "symbol"
-    };
-
     node.Children.RemoveAll(child =>
-      emptyGroupNames.Contains(child.Name) && !child.Attributes.Any() && !child.Children.Any());
+      child.IsContainer && !child.Attributes.Any() && !child.Children.Any());
 
     foreach(var child in node.Children)
     {
@@ -101,7 +84,7 @@ public static partial class SvgOptimizer
             }
           }
 
-          node.Attributes.Clear();
+          node.ClearAttributes();
         }
       }
 
