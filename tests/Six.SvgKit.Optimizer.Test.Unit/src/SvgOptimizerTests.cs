@@ -1,4 +1,6 @@
-﻿namespace SvgKit.Optimizer.Test.Unit;
+﻿using SixSvg = Six.SvgKit.Svg;
+
+namespace SvgKit.Optimizer.Test.Unit;
 
 public partial class SvgOptimizerTests
 {
@@ -6,7 +8,7 @@ public partial class SvgOptimizerTests
   public void RemoveXmlDeclaration_SetsOmitXmlDeclarationToTrue()
   {
     // Arrange
-    var svg = Svg.FromString("<svg></svg>");
+    var svg = SixSvg.FromString("<svg></svg>");
     var builder = new SvgQueryBuilder(svg);
 
     // Act
@@ -16,25 +18,12 @@ public partial class SvgOptimizerTests
     Assert.True(builder.Svg.OmmitXmlDeclaration);
   }
 
-  [Fact]
-  public void RemoveNamespace_SetsRemoveNamespaceToTrue()
-  {
-    // Arrange
-    var svg = Svg.FromString("<svg></svg>");
-    var builder = new SvgQueryBuilder(svg);
-
-    // Act
-    builder.RemoveNamespace();
-
-    // Assert
-    Assert.True(builder.Svg.RemoveNamespace);
-  }
 
   [Fact]
   public void RemoveEmptyNodes_RemovesEmptyNodes()
   {
     // Arrange
-    var svg = Svg.FromString("<svg><g id='empty-group'></g><path d='' /><rect /><circle /></svg>");
+    var svg = SixSvg.FromString("<svg><g id='empty-group'></g><path d='' /><rect /><circle /></svg>");
     var builder = new SvgQueryBuilder(svg);
 
     // Act
@@ -55,8 +44,8 @@ public partial class SvgOptimizerTests
   public void RemoveEmptyText_RemovesEmptyTextElements()
   {
     // Arrange
-    var svg = Svg.FromString(
-      @"<svg xmlns=""http://www.w3.org/2000/svg"" xmlns:xlink=""http://www.w3.org/1999/xlink"">
+    var svg = SixSvg.FromString(
+      @"<svg>
           <text id='empty-text'></text>
           <tspan id='empty-tspan'></tspan>
           <tref id='empty-tref' xlink:href='' />
@@ -97,7 +86,7 @@ public partial class SvgOptimizerTests
   public void RemoveEmptyText_RespectsFlags(bool removeText, bool removeTspan, bool removeTref)
   {
     // Arrange
-    var svg = Svg.FromString(
+    var svg = SixSvg.FromString(
       @"<svg>
           <text id='text'></text>
           <tspan id='tspan'></tspan>

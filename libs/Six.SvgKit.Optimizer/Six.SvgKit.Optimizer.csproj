@@ -11,4 +11,8 @@
       <ProjectReference Include="..\Six.SvgKit\Six.SvgKit.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Svg" Version="3.4.7" />
+    </ItemGroup>
+
 </Project>

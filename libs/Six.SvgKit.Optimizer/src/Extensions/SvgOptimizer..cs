@@ -16,18 +16,6 @@ public static partial class SvgOptimizer
     return builder;
   }
 
-
-  /// <summary>
-  /// Removes the SVG namespace from the root element (xmlns="http://www.w3.org/2000/svg").
-  /// </summary>
-  /// <param name="builder">The SvgQueryBuilder instance to operate on.</param>
-  /// <returns>The modified SvgQueryBuilder instance.</returns>
-  public static SvgQueryBuilder RemoveNamespace(this SvgQueryBuilder builder)
-  {
-    builder.Svg.RemoveNamespace = true;
-    return builder;
-  }
-
   
   /// <summary>
   /// Removes empty SVG nodes from the document.
@@ -44,7 +32,7 @@ public static partial class SvgOptimizer
         var child = node.Children[i];
         RemoveEmptyNodesRecursive(child);
 
-        if(!child.Children.Any())
+        if(child.IsContainerWithChildren)
         {
           node.Children.RemoveAt(i);
         }

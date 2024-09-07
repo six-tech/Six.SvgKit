@@ -2,7 +2,6 @@
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
-using AngleSharp.Dom;
 using AngleSharp.Html;
 using JetBrains.Annotations;
 
@@ -21,11 +20,6 @@ public class Svg
   /// Gets the unique identifier of the SVG instance. Use it to identify the SVG for some later processing.
   /// </summary>
   public string Id { get; private set; } = string.Empty;
-
-  /// <summary>
-  /// Will remove the namespace from the SVG document upon serialization.
-  /// </summary>
-  public bool RemoveNamespace { get; set; }
 
   /// <summary>
   /// Will remove the XML declaration from the SVG document upon serialization.
@@ -91,19 +85,7 @@ public class Svg
     return clone;
   }
 
-  // /// <summary>
-  // /// Converts the SVG document to an <see cref="XDocument"/>.
-  // /// </summary>
-  // /// <returns>An <see cref="XDocument"/> representing the SVG document.</returns>
-  // public XDocument ToXDocument()
-  // {
-  //   XDocument doc = new(
-  //     Ast.Root.ToXElement(true)
-  //   );
-  //
-  //   return doc;
-  // }
-
+  
   /// <summary>
   /// Saves the SVG document to a file.
   /// </summary>
@@ -111,7 +93,15 @@ public class Svg
   /// <param name="formatting">The formatting options for the XML writer.</param>
   public void ToFile(string path, Formatting formatting = Formatting.Indented)
   {
-    // GEMINI: Use ToSvg to create a string and then write it to a file
+    try
+    {
+      // Write the SVG content to the file
+      File.WriteAllText(path, ToSvg(), Encoding.UTF8);
+    }
+    catch (Exception ex)
+    {
+      Console.WriteLine($"An error occurred while saving {path}: {ex.Message}");
+    }
   }
 
   /// <summary>
@@ -132,7 +122,10 @@ public class Svg
     if (CompressOutput)
     {
       // Minify the output using a custom formatter
-      var formatter = new MinifyMarkupFormatter();
+      var formatter = new MinifyMarkupFormatter
+      {
+        ShouldKeepAttributeQuotes = true,
+      };
       doc.ToHtml(stringWriter, formatter);
     }
     else

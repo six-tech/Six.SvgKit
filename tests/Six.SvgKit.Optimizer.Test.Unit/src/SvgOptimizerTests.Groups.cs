@@ -1,4 +1,6 @@
-﻿namespace SvgKit.Optimizer.Test.Unit;
+﻿using SixSvg = Six.SvgKit.Svg;
+
+namespace SvgKit.Optimizer.Test.Unit;
 
 public partial class SvgOptimizerTests
 {
@@ -6,7 +8,7 @@ public partial class SvgOptimizerTests
   public void RemoveEmptyContainers_RemovesEmptyGroupElements()
   {
     // Arrange
-    var svg = Svg.FromString("<svg><g></g><g><rect/></g><g></g></svg>");
+    var svg = SixSvg.FromString("<svg><g></g><g><rect/></g><g></g></svg>");
     var builder = new SvgQueryBuilder(svg);
 
     // Act
@@ -28,7 +30,7 @@ public partial class SvgOptimizerTests
   public void CollapseGroups_EmptyGroup_RemovesGroup()
   {
     // Arrange
-    var svg = Svg.FromString("<svg><g></g></svg>");
+    var svg = SixSvg.FromString("<svg><g></g></svg>");
     var builder = new SvgQueryBuilder(svg);
 
     // Act
@@ -46,7 +48,7 @@ public partial class SvgOptimizerTests
   public void CollapseGroups_GroupWithSingleChild_MovesAttributesToChild()
   {
     // Arrange
-    var svg = Svg.FromString("<svg><g fill='red'><rect><g fill='red'><rect/></g></rect></g></svg>");
+    var svg = SixSvg.FromString("<svg><g fill='red'><rect><g fill='red'><rect/></g></rect></g></svg>");
     var builder = new SvgQueryBuilder(svg);
 
     // Act
@@ -71,7 +73,7 @@ public partial class SvgOptimizerTests
   public void CollapseGroups_GroupWithFilterAttribute_PreservesGroup()
   {
     // Arrange
-    var svg = Svg.FromString("<svg><g filter='url(#f)'><rect/></g></svg>");
+    var svg = SixSvg.FromString("<svg><g filter='url(#f)'><rect/></g></svg>");
     var builder = new SvgQueryBuilder(svg);
 
     // Act
@@ -89,7 +91,7 @@ public partial class SvgOptimizerTests
   public void CollapseGroups_GroupWithClipPathAttribute_PreservesGroup()
   {
     // Arrange
-    var svg = Svg.FromString("<svg><g clip-path='url(#cp)'><rect/></g></svg>");
+    var svg = SixSvg.FromString("<svg><g clip-path='url(#cp)'><rect/></g></svg>");
     var builder = new SvgQueryBuilder(svg);
 
     // Act
@@ -107,7 +109,7 @@ public partial class SvgOptimizerTests
   public void CollapseGroups_GroupWithMaskAttribute_PreservesGroup()
   {
     // Arrange
-    var svg = Svg.FromString("<svg><g mask='url(#m)'><rect/></g></svg>");
+    var svg = SixSvg.FromString("<svg><g mask='url(#m)'><rect/></g></svg>");
     var builder = new SvgQueryBuilder(svg);
 
     // Act
@@ -125,7 +127,7 @@ public partial class SvgOptimizerTests
   public void CollapseGroups_GroupWithAnimationElement_PreservesGroup()
   {
     // Arrange
-    var svg = Svg.FromString("<svg><g><animate/><rect/></g></svg>");
+    var svg = SixSvg.FromString("<svg><g><animate/><rect/></g></svg>");
     var builder = new SvgQueryBuilder(svg);
 
     // Act

@@ -83,6 +83,7 @@ public record SvgResult
   [MethodImpl(MethodImplOptions.AggressiveInlining)]
   public void ToFile(string path) => ModifiedSvg.ToFile(path);
 
+  
   /// <summary>
   /// Converts the modified SVG to its string representation.
   /// </summary>
