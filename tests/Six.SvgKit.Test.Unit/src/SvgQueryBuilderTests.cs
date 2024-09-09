@@ -1,4 +1,6 @@
-﻿using Xunit.Abstractions;
+﻿using SixSvg = Six.SvgKit.Svg;
+
+using Xunit.Abstractions;
 
 namespace SvgKit.Test.Unit;
 
@@ -15,7 +17,7 @@ public class SvgQueryBuilderTests
   public void Select_SetsPredicateCorrectly()
   {
     // Arrange
-    var svg = Svg.FromString("<svg><rect/><circle/></svg>");
+    var svg = SixSvg.FromString("<svg><rect/><circle/></svg>");
     var builder = new SvgQueryBuilder(svg);
 
     // Act
@@ -30,7 +32,7 @@ public class SvgQueryBuilderTests
   public void Where_CombinesPredicatesCorrectly()
   {
     // Arrange
-    var svg = Svg.FromString("<svg><rect width='100'/><rect width='200'/></svg>");
+    var svg = SixSvg.FromString("<svg><rect width='100'/><rect width='200'/></svg>");
     var builder = new SvgQueryBuilder(svg);
 
     // Act
@@ -52,7 +54,7 @@ public class SvgQueryBuilderTests
   public void RemoveNodes_RemovesMatchingNodes()
   {
     // Arrange
-    var svg = Svg.FromString("<svg><rect/><circle/><rect/></svg>");
+    var svg = SixSvg.FromString("<svg><rect/><circle/><rect/></svg>");
     var builder = new SvgQueryBuilder(svg);
 
     // Act
@@ -73,7 +75,7 @@ public class SvgQueryBuilderTests
   public void SetAttribute_SetsAttributeOnMatchingNodes()
   {
     // Arrange
-    var svg = Svg.FromString("<svg><rect/><circle/></svg>");
+    var svg = SixSvg.FromString("<svg><rect/><circle/></svg>");
     var builder = new SvgQueryBuilder(svg);
 
     // Act
@@ -95,7 +97,7 @@ public class SvgQueryBuilderTests
   public void Select_Recursive_SelectsNodesFromNestedStructure()
   {
     // Arrange
-    var svg = Svg.FromString("<svg><g fill='red'><rect><g fill='blue'><rect/></g></rect></g></svg>");
+    var svg = SixSvg.FromString("<svg><g fill='red'><rect><g fill='blue'><rect/></g></rect></g></svg>");
     var builder = new SvgQueryBuilder(svg);
 
     // Act
@@ -111,7 +113,7 @@ public class SvgQueryBuilderTests
   public void Transform_ConditionallAttributes()
   {
     // Arrange
-    var svg = Svg.FromString("<svg><rect width='50' height='50'/><rect width='150' height='100'/></svg>");
+    var svg = SixSvg.FromString("<svg><rect width='50' height='50'/><rect width='150' height='100'/></svg>");
     var builder = new SvgQueryBuilder(svg);
 
     // Act
@@ -144,7 +146,7 @@ public class SvgQueryBuilderTests
   public void SetAttributes_SetsMultipleAttributes()
   {
     // Arrange
-    var svg = Svg.FromString("<svg><path d='M0 0 L10 10'/></svg>");
+    var svg = SixSvg.FromString("<svg><path d='M0 0 L10 10'/></svg>");
     var builder = new SvgQueryBuilder(svg);
     var newAttributes = new Dictionary<string, string> { { "fill", "yellow" }, { "stroke", "black" } };
 
@@ -168,7 +170,7 @@ public class SvgQueryBuilderTests
   public void RemoveAttributeIf_RemovesAttributeBasedOnCondition()
   {
     // Arrange
-    var svg = Svg.FromString("<svg><rect fill='red' stroke='blue'/><rect stroke='green'/></svg>");
+    var svg = SixSvg.FromString("<svg><rect fill='red' stroke='blue'/><rect stroke='green'/></svg>");
     var builder = new SvgQueryBuilder(svg);
 
     // Act
@@ -191,7 +193,7 @@ public class SvgQueryBuilderTests
   public void HasAttribute_FiltersByAttribute()
   {
     // Arrange
-    var svg = Svg.FromString("<svg><rect class='highlight'/><circle/><rect class='normal'/></svg>");
+    var svg = SixSvg.FromString("<svg><rect class='highlight'/><circle/><rect class='normal'/></svg>");
     var builder = new SvgQueryBuilder(svg);
 
     // Act
@@ -209,7 +211,7 @@ public class SvgQueryBuilderTests
   public void TransformAttribute_ModifiesAttributeValue()
   {
     // Arrange
-    var svg = Svg.FromString("<svg><text font-size='12'>Hello</text></svg>");
+    var svg = SixSvg.FromString("<svg><text font-size='12'>Hello</text></svg>");
     var builder = new SvgQueryBuilder(svg);
 
     // Act
@@ -233,7 +235,7 @@ public class SvgQueryBuilderTests
   /// <summary>
   /// Helper method to create simple SVG document.
   /// </summary>
-  static Svg CreateSvgDocument()
+  static SixSvg CreateSvgDocument()
   {
     string svgString = @"
             <svg xmlns='http://www.w3.org/2000/svg'>
@@ -241,7 +243,7 @@ public class SvgQueryBuilderTests
                 <rect width='200' height='100'/>
                 <circle radius='25'/>
             </svg>";
-    return Svg.FromString(svgString);
+    return SixSvg.FromString(svgString);
   }
 
   [Fact]

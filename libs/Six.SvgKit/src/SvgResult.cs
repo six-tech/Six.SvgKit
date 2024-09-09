@@ -22,9 +22,9 @@ public record SvgResult
   public Svg ModifiedSvg { get; }
 
   /// <summary>
-  /// Gets the ID of the modified SVG.
+  /// Gets the <see cref="SvgMetadata"/> of the modified <see cref="Svg"/>.
   /// </summary>
-  public string Id => ModifiedSvg.Id;
+  public SvgMetadata? Metadata => ModifiedSvg.Metadata;
 
   
   #endregion
@@ -81,7 +81,7 @@ public record SvgResult
   /// </summary>
   /// <param name="path">The path to save the file to.</param>
   [MethodImpl(MethodImplOptions.AggressiveInlining)]
-  public void ToFile(string path) => ModifiedSvg.ToFile(path);
+  public void ToFile(string path) => ModifiedSvg.ToSvgFile(path);
 
   
   /// <summary>

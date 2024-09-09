@@ -17,9 +17,9 @@ public class Svg
   #region PROPERTIES
 
   /// <summary>
-  /// Gets the unique identifier of the SVG instance. Use it to identify the SVG for some later processing.
+  /// Gets the SVG metadata. Useful for identifying the SVG instance while processing multiple SVGs.
   /// </summary>
-  public string Id { get; private set; } = string.Empty;
+  public SvgMetadata? Metadata { get; private set; }
 
   /// <summary>
   /// Will remove the XML declaration from the SVG document upon serialization.
@@ -46,17 +46,18 @@ public class Svg
     Ast = new SvgAst(this, svgString);
   }
 
+  
   // PUBLIC METHODS
   // ----------------------------------------------------------------------------------------------------------
 
   /// <summary>
-  /// Sets the unique identifier of the SVG instance.
+  /// Sets the SVG metadata. Useful for identifying the SVG instance while processing multiple SVGs.
   /// </summary>
-  /// <param name="id">The unique identifier.</param>
+  /// <param name="metadata">The <see cref="SvgMetadata"/> instance.</param>
   /// <returns>The current <see cref="Svg"/> instance.</returns>
-  public Svg WithId(string id)
+  public Svg WithMetadata(SvgMetadata metadata)
   {
-    Id = id;
+    Metadata = metadata;
     return this;
   }
 
@@ -77,9 +78,9 @@ public class Svg
   {
     var clone = new Svg(ToSvg());
 
-    if(string.IsNullOrEmpty(Id) == false)
+    if(Metadata is not null)
     {
-      clone.WithId(Id);
+      clone.WithMetadata(Metadata);
     }
 
     return clone;
@@ -90,8 +91,7 @@ public class Svg
   /// Saves the SVG document to a file.
   /// </summary>
   /// <param name="path">The path to save the file to.</param>
-  /// <param name="formatting">The formatting options for the XML writer.</param>
-  public void ToFile(string path, Formatting formatting = Formatting.Indented)
+  public void ToSvgFile(string path)
   {
     try
     {
@@ -104,6 +104,7 @@ public class Svg
     }
   }
 
+  
   /// <summary>
   /// Converts the SVG document to its string representation.
   /// </summary>
@@ -138,6 +139,7 @@ public class Svg
     return stringWriter.ToString();
   }
 
+  
   /// <summary>
   /// Converts the SVG document to a byte array.
   /// </summary>

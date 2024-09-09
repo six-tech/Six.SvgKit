@@ -35,8 +35,8 @@ if (-not $AndroidSdkPath) {
 
 # Add your libraries here
 $targetProjects = @(
-    "Six.Library.Path.A",
-    "Six.Library.Path.B"
+    "Six.SvgKit",
+    "Six.SvgKit.Optimizer"
 )
 
 # Create the log directory.

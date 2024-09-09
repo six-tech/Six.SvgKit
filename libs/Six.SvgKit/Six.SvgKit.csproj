@@ -10,8 +10,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="AngleSharp" Version="1.1.2" />
-      <PackageReference Include="AngleSharp.Xml" Version="1.0.0" />
+        <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.0.0" />
+        <PackageReference Include="Svg" Version="3.4.7"/>
+        <PackageReference Include="AngleSharp" Version="1.1.2"/>
+        <PackageReference Include="AngleSharp.Xml" Version="1.0.0"/>
     </ItemGroup>
 
 </Project>

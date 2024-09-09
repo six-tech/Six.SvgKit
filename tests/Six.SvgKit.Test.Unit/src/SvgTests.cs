@@ -1,3 +1,5 @@
+using SixSvg = Six.SvgKit.Svg;
+
 namespace SvgKit.Test.Unit;
 
 public class SvgTests
@@ -10,36 +12,15 @@ public class SvgTests
   [Fact]
   public void FromString_CreatesSvgInstance()
   {
-    var svg = Svg.FromString(TestSvgString);
+    var svg = SixSvg.FromString(TestSvgString);
     Assert.NotNull(svg);
-    Assert.IsType<Svg>(svg);
-  }
-
-  [Fact]
-  public void WithId_SetsSvgId()
-  {
-    var svg = Svg.FromString(TestSvgString);
-    svg.WithId("testId");
-    Assert.Equal("testId", svg.Id);
-  }
-
-  [Fact]
-  public void Clone_CreatesCopy()
-  {
-    var original = Svg.FromString(TestSvgString);
-    original.WithId("originalId");
-    var clone = original.Clone();
-
-    Assert.NotNull(clone);
-    Assert.IsType<Svg>(clone);
-    Assert.Equal(original.Id, clone.Id);
-    Assert.NotSame(original, clone);
+    Assert.IsType<SixSvg>(svg);
   }
 
   [Fact]
   public void ToSvg_ReturnsValidSvgString()
   {
-    var svg = Svg.FromString(TestSvgString);
+    var svg = SixSvg.FromString(TestSvgString);
     var svgString = svg.ToSvg();
 
     Assert.NotNull(svgString);
@@ -50,7 +31,7 @@ public class SvgTests
   [Fact]
   public void ToBytes_ReturnsNonEmptyByteArray()
   {
-    var svg = Svg.FromString(TestSvgString);
+    var svg = SixSvg.FromString(TestSvgString);
     var bytes = svg.ToBytes();
 
     Assert.NotNull(bytes);

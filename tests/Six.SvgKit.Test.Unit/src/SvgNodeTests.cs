@@ -1,4 +1,6 @@
-﻿namespace SvgKit.Test.Unit;
+﻿using SixSvg = Six.SvgKit.Svg;
+
+namespace SvgKit.Test.Unit;
 
 public class SvgNodeTests
 {
@@ -6,7 +8,7 @@ public class SvgNodeTests
   public void Constructor_SetsNameCorrectly()
   {
     // Arrange
-    var svg = Svg.FromString("<svg></svg>");
+    var svg = SixSvg.FromString("<svg></svg>");
 
     // Act
     var node = new SvgNode(svg, "rect");
@@ -19,7 +21,7 @@ public class SvgNodeTests
   public void AddChild_AddsChildCorrectly()
   {
     // Arrange
-    var svg = Svg.FromString("<svg></svg>");
+    var svg = SixSvg.FromString("<svg></svg>");
     var parent = new SvgNode(svg, "g");
     var child = new SvgNode(svg, "rect");
 
@@ -36,7 +38,7 @@ public class SvgNodeTests
   public void ToXElement_CreatesCorrectXElement()
   {
     // Arrange
-    var svg = Svg.FromString("<svg></svg>");
+    var svg = SixSvg.FromString("<svg></svg>");
     var node = new SvgNode(svg, "rect");
     node.SetAttribute("width", "100");
     node.SetAttribute("height", "50");
@@ -54,7 +56,7 @@ public class SvgNodeTests
   public void SetAttribute_SetsAttributeCorrectly()
   {
     // Arrange
-    var svg = Svg.FromString("<svg></svg>");
+    var svg = SixSvg.FromString("<svg></svg>");
     var node = new SvgNode(svg, "rect");
 
     // Act
@@ -68,7 +70,7 @@ public class SvgNodeTests
   public void RemoveAttribute_RemovesAttributeCorrectly()
   {
     // Arrange
-    var svg = Svg.FromString("<svg></svg>");
+    var svg = SixSvg.FromString("<svg></svg>");
     var node = new SvgNode(svg, "rect");
     node.SetAttribute("width", "100");
 
@@ -83,13 +85,13 @@ public class SvgNodeTests
   /// <summary>
   /// Helper method to create simple SVG document.
   /// </summary>
-  static Svg CreateSvgDocument()
+  static SixSvg CreateSvgDocument()
   {
     string svgString = @"
             <svg xmlns='http://www.w3.org/2000/svg'>
                 <rect width='100' height='50'/>
             </svg>";
-    return Svg.FromString(svgString);
+    return SixSvg.FromString(svgString);
   }
 
   [Fact]
@@ -141,7 +143,7 @@ public class SvgNodeTests
   [Fact]
   public void CreateChild_CreatesChildNode()
   {
-    var svg = Svg.FromString("<svg></svg>");
+    var svg = SixSvg.FromString("<svg></svg>");
     var parent = new SvgNode(svg, "g");
     var child = parent.CreateChild("rect");
 
@@ -153,7 +155,7 @@ public class SvgNodeTests
   [Fact]
   public void RemoveChild_RemovesChildNode()
   {
-    var svg = Svg.FromString("<svg></svg>");
+    var svg = SixSvg.FromString("<svg></svg>");
     var parent = new SvgNode(svg, "g");
     var child = new SvgNode(svg, "rect");
     parent.AddChild(child);
@@ -168,7 +170,7 @@ public class SvgNodeTests
   [Fact]
   public void Remove_RemovesNodeFromParent()
   {
-    var svg = Svg.FromString("<svg></svg>");
+    var svg = SixSvg.FromString("<svg></svg>");
     var parent = new SvgNode(svg, "g");
     var child = new SvgNode(svg, "rect");
     parent.AddChild(child);
@@ -183,7 +185,7 @@ public class SvgNodeTests
   [Fact]
   public void ReplaceWith_ReplacesNodeWithNewNode()
   {
-    var svg = Svg.FromString("<svg></svg>");
+    var svg = SixSvg.FromString("<svg></svg>");
     var parent = new SvgNode(svg, "g");
     var oldChild = new SvgNode(svg, "rect");
     var newChild = new SvgNode(svg, "circle");
@@ -200,7 +202,7 @@ public class SvgNodeTests
   [Fact]
   public void ClearAttributes_RemovesAllAttributes()
   {
-    var svg = Svg.FromString("<svg></svg>");
+    var svg = SixSvg.FromString("<svg></svg>");
     var node = new SvgNode(svg, "rect");
     node.SetAttribute("width", "100");
     node.SetAttribute("height", "50");
@@ -213,7 +215,7 @@ public class SvgNodeTests
   [Fact]
   public void TransferAttributesTo_TransfersAttributes()
   {
-    var svg = Svg.FromString("<svg></svg>");
+    var svg = SixSvg.FromString("<svg></svg>");
     var sourceNode = new SvgNode(svg, "rect");
     sourceNode.SetAttribute("width", "100");
     sourceNode.SetAttribute("height", "50");
@@ -228,7 +230,7 @@ public class SvgNodeTests
   [Fact]
   public void TransferAttributesFrom_TransfersAttributes()
   {
-    var svg = Svg.FromString("<svg></svg>");
+    var svg = SixSvg.FromString("<svg></svg>");
     var sourceNode = new SvgNode(svg, "rect");
     sourceNode.SetAttribute("width", "100");
     sourceNode.SetAttribute("height", "50");
