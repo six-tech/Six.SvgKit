@@ -4,7 +4,11 @@ using SixSvg = Six.SvgKit.Svg;
 
 Console.WriteLine("Optimize all SVG monochromatic icons in a directory");
 Console.WriteLine("---------------------------------------------");
-BatchOptimize.OptimizeDirectory();
+
+var svgRoot = Helpers.FindDirectory("svg");
+string rootImportDirectoryPath = Path.Combine(svgRoot, "input");
+string rootExportDirectoryPath = Path.Combine(svgRoot, "output");
+BatchOptimize.OptimizeDirectories(rootImportDirectoryPath, rootExportDirectoryPath);
 
 
 Console.WriteLine("Create SVG from string and optimize it");

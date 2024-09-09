@@ -214,7 +214,13 @@ public class SvgQueryBuilder
   /// <returns>The current <see cref="SvgQueryBuilder"/> instance.</returns>
   public SvgQueryBuilder RemoveNodes()
   {
-    Ast.Root.OnSetChildern(Ast.Root.Children.Where(child => !Predicate(child)).ToList());
+    var toRemove = Ast.Root.Children.Where(child => Predicate(child)).ToList();
+    
+    foreach(var node in toRemove)
+    {
+      node.Remove();
+    }
+    
     return this;
   }
 

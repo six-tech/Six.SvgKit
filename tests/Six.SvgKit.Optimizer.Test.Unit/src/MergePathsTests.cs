@@ -1,6 +1,6 @@
 namespace Six.SvgKit.Optimizer.Test.Unit;
 
-public partial class SvgOptimizerTests
+public class MergePathsTests
 {
   [Fact]
   public void MergePaths_SinglePath_ReturnsSamePath()
@@ -20,7 +20,7 @@ public partial class SvgOptimizerTests
     // Assert
     // NOTE: We are using Compressed output to flattent the svg content.
     // However, compressed ouput removes "" from attributes, so we need to assert without quotes.
-    Assert.Equal("<svg><path d=\"M0 0 L10 10\" fill=none stroke=black></path></svg>", result);
+    Assert.Equal("<svg><path d=\"M0 0 L10 10\" fill=\"none\" stroke=\"black\"></path></svg>", result);
   }
 
   [Fact]
@@ -45,7 +45,7 @@ public partial class SvgOptimizerTests
     // Assert
     // NOTE: We are using Compressed output to flattent the svg content.
     // However, compressed ouput removes "" from attributes, so we need to assert without quotes.
-    Assert.Equal("<svg><path d=\"M0 0 L10 10 M20 20 L30 30\" fill=none stroke=black></path></svg>", result);
+    Assert.Equal("<svg><path d=\"M0 0 L10 10 M20 20 L30 30\" fill=\"none\" stroke=\"black\"></path></svg>", result);
   }
 
   [Fact]
@@ -72,8 +72,8 @@ public partial class SvgOptimizerTests
     // NOTE: We are using Compressed output to flattent the svg content.
     // However, compressed ouput removes "" from attributes, so we need to assert without quotes.
     Assert.Equal("<svg>" +
-                 "<path d=\"M0 0 L10 10 M40 40 L50 50\" fill=none stroke=black></path>" +
-                 "<path d=\"M20 20 L30 30\" fill=none stroke=red></path>" +
+                 "<path d=\"M0 0 L10 10 M40 40 L50 50\" fill=\"none\" stroke=\"black\"></path>" +
+                 "<path d=\"M20 20 L30 30\" fill=\"none\" stroke=\"red\"></path>" +
                  "</svg>", result);
   }
 
@@ -99,8 +99,8 @@ public partial class SvgOptimizerTests
 
     // Assert
     Assert.Equal("<svg>" +
-                 "<path d=\"M0 0 L10 10 M40 40 L50 50\" fill=none stroke=black></path>" +
-                 "<path d=\"M20 20 L30 30\" fill=red stroke=black></path>" +
+                 "<path d=\"M0 0 L10 10 M40 40 L50 50\" fill=\"none\" stroke=\"black\"></path>" +
+                 "<path d=\"M20 20 L30 30\" fill=\"red\" stroke=\"black\"></path>" +
                  "</svg>", result);
   }
 
@@ -145,7 +145,7 @@ public partial class SvgOptimizerTests
 
     // Assert
     Assert.Equal(
-      "<svg><path d=\"M0 0 L10 10 M20 20 C30 30 40 40 50 50 M60 60 Q70 70 80 80\" fill=none stroke=black></path></svg>",
+      "<svg><path d=\"M0 0 L10 10 M20 20 C30 30 40 40 50 50 M60 60 Q70 70 80 80\" fill=\"none\" stroke=\"black\"></path></svg>",
       result);
   }
 
@@ -171,8 +171,8 @@ public partial class SvgOptimizerTests
 
     // Assert
     Assert.Equal("<svg>" +
-                 "<path d=\"M0 0 L10 10 Z M50 50 L60 60 Z\" fill=none stroke=black></path>" +
-                 "<path d=\"M20 20 L30 30 L40 40 Z\" fill=red stroke=black></path>" +
+                 "<path d=\"M0 0 L10 10 Z M50 50 L60 60 Z\" fill=\"none\" stroke=\"black\"></path>" +
+                 "<path d=\"M20 20 L30 30 L40 40 Z\" fill=\"red\" stroke=\"black\"></path>" +
                  "</svg>", result);
   }
 
@@ -198,8 +198,8 @@ public partial class SvgOptimizerTests
 
     // Assert
     Assert.Equal("<svg>" +
-                 "<path d=\"M0 0 A10 10 0 0 1 10 10 M60 60 A20 20 0 1 1 80 80\" fill=none stroke=black></path>" +
-                 "<path d=\"M20 20 A30 30 0 0 0 50 50\" fill=red stroke=black></path>" +
+                 "<path d=\"M0 0 A10 10 0 0 1 10 10 M60 60 A20 20 0 1 1 80 80\" fill=\"none\" stroke=\"black\"></path>" +
+                 "<path d=\"M20 20 A30 30 0 0 0 50 50\" fill=\"red\" stroke=\"black\"></path>" +
                  "</svg>", result);
   }
 
@@ -225,7 +225,7 @@ public partial class SvgOptimizerTests
 
     // Assert
     Assert.Equal(
-      "<svg><path d=\"M0 0 l10 10 M20 20 c10 10 20 20 30 30 M60 60 q10 10 20 20\" fill=none stroke=black></path></svg>",
+      "<svg><path d=\"M0 0 l10 10 M20 20 c10 10 20 20 30 30 M60 60 q10 10 20 20\" fill=\"none\" stroke=\"black\"></path></svg>",
       result);
   }
 
@@ -253,7 +253,7 @@ public partial class SvgOptimizerTests
     // Assert
     Assert.Equal("<svg>" +
                  "<g>" +
-                 "<path d=\"M0 0 L10 10 M20 20 L30 30\" fill=none stroke=black></path>" +
+                 "<path d=\"M0 0 L10 10 M20 20 L30 30\" fill=\"none\" stroke=\"black\"></path>" +
                  "</g>" +
                  "</svg>", result);
   }
@@ -287,8 +287,8 @@ public partial class SvgOptimizerTests
     // Assert
     Assert.Equal("<svg>" +
                  "<g>" +
-                 "<path d=\"M0 0 L10 10 M20 20 L30 30\" fill=none stroke=black></path>" +
-                 "<path d=\"M40 40 L50 50 M60 60 L70 70\" fill=red stroke=black></path>" +
+                 "<path d=\"M0 0 L10 10 M20 20 L30 30\" fill=\"none\" stroke=\"black\"></path>" +
+                 "<path d=\"M40 40 L50 50 M60 60 L70 70\" fill=\"red\" stroke=\"black\"></path>" +
                  "</g>" +
                  "</svg>", result);
   }
@@ -325,8 +325,8 @@ public partial class SvgOptimizerTests
     // Assert
     Assert.Equal("<svg>" +
                  "<g>" +
-                 "<path d=\"M0 0 L10 10 M20 20 L30 30 M40 40 L50 50\" fill=none stroke=black></path>" +
-                 "<path d=\"M60 60 L70 70 M80 80 L90 90\" fill=red stroke=black></path>" +
+                 "<path d=\"M0 0 L10 10 M20 20 L30 30 M40 40 L50 50\" fill=\"none\" stroke=\"black\"></path>" +
+                 "<path d=\"M60 60 L70 70 M80 80 L90 90\" fill=\"red\" stroke=\"black\"></path>" +
                  "</g>" +
                  "</svg>", result);
   }

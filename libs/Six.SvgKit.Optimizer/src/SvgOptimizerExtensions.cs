@@ -28,6 +28,8 @@ public static class SvgOptimizerExtensions
   )
   {
     builder
+      .RemoveAllAttributes()
+      .ConvertShapesToPaths(2)
       .MergePaths()
       .MergePathCommands()
       .RoundPathSegments(2) // Round path segments to 2 decimal places (instead of 4)

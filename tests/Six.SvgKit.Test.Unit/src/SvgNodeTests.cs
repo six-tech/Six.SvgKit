@@ -50,9 +50,6 @@ public class SvgNodeTests
     Assert.Equal("50", xElement.Attributes.GetNamedItem("height")!.Value);
   }
 
-  
-  // Attributes
-  // ----------------------------------------------------------------------------------------------------------
   [Fact]
   public void SetAttribute_SetsAttributeCorrectly()
   {
@@ -82,7 +79,7 @@ public class SvgNodeTests
     Assert.False(node.Attributes.ContainsKey("width"));
   }
 
-  
+
   /// <summary>
   /// Helper method to create simple SVG document.
   /// </summary>
@@ -94,7 +91,7 @@ public class SvgNodeTests
             </svg>";
     return Svg.FromString(svgString);
   }
-  
+
   [Fact]
   public void SelectAttributes_SelectsAllAttributes_WhenPredicateAlwaysTrue()
   {
@@ -139,5 +136,107 @@ public class SvgNodeTests
     Assert.Equal(2, node.Attributes.Count);
     Assert.Equal("200", node.Attributes["width_modified"]);
     Assert.Equal("50", node.Attributes["height"]);
+  }
+
+  [Fact]
+  public void CreateChild_CreatesChildNode()
+  {
+    var svg = Svg.FromString("<svg></svg>");
+    var parent = new SvgNode(svg, "g");
+    var child = parent.CreateChild("rect");
+
+    Assert.Single(parent.Children);
+    Assert.Equal("rect", child.Name);
+    Assert.Same(parent, child.Parent);
+  }
+
+  [Fact]
+  public void RemoveChild_RemovesChildNode()
+  {
+    var svg = Svg.FromString("<svg></svg>");
+    var parent = new SvgNode(svg, "g");
+    var child = new SvgNode(svg, "rect");
+    parent.AddChild(child);
+
+    bool removed = parent.RemoveChild(child);
+
+    Assert.True(removed);
+    Assert.Empty(parent.Children);
+    Assert.Null(child.Parent);
+  }
+
+  [Fact]
+  public void Remove_RemovesNodeFromParent()
+  {
+    var svg = Svg.FromString("<svg></svg>");
+    var parent = new SvgNode(svg, "g");
+    var child = new SvgNode(svg, "rect");
+    parent.AddChild(child);
+
+    bool removed = child.Remove();
+
+    Assert.True(removed);
+    Assert.Empty(parent.Children);
+    Assert.Null(child.Parent);
+  }
+
+  [Fact]
+  public void ReplaceWith_ReplacesNodeWithNewNode()
+  {
+    var svg = Svg.FromString("<svg></svg>");
+    var parent = new SvgNode(svg, "g");
+    var oldChild = new SvgNode(svg, "rect");
+    var newChild = new SvgNode(svg, "circle");
+    parent.AddChild(oldChild);
+
+    oldChild.ReplaceWith(newChild);
+
+    Assert.Single(parent.Children);
+    Assert.Same(newChild, parent.Children[0]);
+    Assert.Same(parent, newChild.Parent);
+    Assert.Null(oldChild.Parent);
+  }
+
+  [Fact]
+  public void ClearAttributes_RemovesAllAttributes()
+  {
+    var svg = Svg.FromString("<svg></svg>");
+    var node = new SvgNode(svg, "rect");
+    node.SetAttribute("width", "100");
+    node.SetAttribute("height", "50");
+
+    node.ClearAttributes();
+
+    Assert.Empty(node.Attributes);
+  }
+
+  [Fact]
+  public void TransferAttributesTo_TransfersAttributes()
+  {
+    var svg = Svg.FromString("<svg></svg>");
+    var sourceNode = new SvgNode(svg, "rect");
+    sourceNode.SetAttribute("width", "100");
+    sourceNode.SetAttribute("height", "50");
+    var targetNode = new SvgNode(svg, "rect");
+
+    sourceNode.TransferAttributesTo(targetNode);
+
+    Assert.Equal("100", targetNode.Attributes["width"]);
+    Assert.Equal("50", targetNode.Attributes["height"]);
+  }
+
+  [Fact]
+  public void TransferAttributesFrom_TransfersAttributes()
+  {
+    var svg = Svg.FromString("<svg></svg>");
+    var sourceNode = new SvgNode(svg, "rect");
+    sourceNode.SetAttribute("width", "100");
+    sourceNode.SetAttribute("height", "50");
+    var targetNode = new SvgNode(svg, "rect");
+
+    targetNode.TransferAttributesFrom(sourceNode);
+
+    Assert.Equal("100", targetNode.Attributes["width"]);
+    Assert.Equal("50", targetNode.Attributes["height"]);
   }
 }

@@ -1,4 +1,4 @@
-﻿using System.Xml.Linq;
+﻿using System.Runtime.CompilerServices;
 using AngleSharp.Dom;
 using JetBrains.Annotations;
 
@@ -14,7 +14,7 @@ namespace Six.SvgKit;
 public record SvgNode
 {
   readonly AttributeDictionary _attributes = [];
-  
+
   #region PROPERTIES
 
   /// <summary>
@@ -38,6 +38,11 @@ public record SvgNode
   public List<SvgNode> Children { get; private set; } = [];
 
   /// <summary>
+  /// Gets the text content of this node.
+  /// </summary>
+  public string? TextContent { get; private set; }
+
+  /// <summary>
   /// If this note is root node of SVG document.
   /// </summary>
   public bool IsRoot => Parent is null && Name == "svg";
@@ -51,16 +56,32 @@ public record SvgNode
   /// <see cref="Dictionary{TKey,TValue}"/> of node attributes.
   /// </summary>
   public AttributeDictionary Attributes => _attributes;
-  
+
   /// <summary>
   /// Gets if this node is a container node
   /// </summary>
   public bool IsContainer => SvgContainers.IsContainer(this);
-  
+
   /// <summary>
   /// Gets if this node is a container node and has children
   /// </summary>
   public bool IsContainerWithChildren => SvgContainers.IsContainer(this) && Children.Count > 0;
+
+  /// <summary>
+  /// Determines if the current SVG node represents a text-related node,
+  /// specifically "text", "tspan", or "tref".
+  /// </summary>
+  public bool IsText
+  {
+    get
+    {
+      if(Name.Equals("text", StringComparison.OrdinalIgnoreCase)) return true;
+      if(Name.Equals("tspan", StringComparison.OrdinalIgnoreCase)) return true;
+      if(Name.Equals("tref", StringComparison.OrdinalIgnoreCase)) return true;
+      return false;
+    }
+  }
+  
 
   #endregion
 
@@ -106,6 +127,7 @@ public record SvgNode
     return child;
   }
 
+
   /// <summary>
   /// Removes a specified child <see cref="SvgNode"/> from this node.
   /// </summary>
@@ -136,10 +158,65 @@ public record SvgNode
 
 
   /// <summary>
+  /// Replaces the current node with a new node in the parent's children list.
+  /// </summary>
+  /// <param name="newNode">The new node to replace the current node with.</param>
+  public void ReplaceWith(SvgNode newNode)
+  {
+    if(Parent is null)
+      return;
+
+    var index = Parent.Children.IndexOf(this);
+    Parent.Children[index] = newNode;
+
+    newNode.OnAddedToParent(Parent);
+    OnRemovedFromParent(Parent);
+  }
+
+
+  /// <summary>
+  /// Determines if the node contains an attribute with the specified name.
+  /// </summary>
+  /// <param name="name">The name of the attribute to check.</param>
+  /// <returns>True if the attribute exists; otherwise, false.</returns>
+  [MethodImpl(MethodImplOptions.AggressiveInlining)]
+  public bool HasAttribute(string name)
+  {
+    return _attributes.ContainsKey(name);
+  }
+
+  /// <summary>
+  /// Retrieves the value of an attribute with the specified key from this node.
+  /// </summary>
+  /// <param name="key">The key of the attribute to retrieve.</param>
+  /// <returns>The value of the attribute associated with the specified key.</returns>
+  /// <exception cref="KeyNotFoundException">Thrown when the specified key does not exist in the attributes.</exception>
+  [MethodImpl(MethodImplOptions.AggressiveInlining)]
+  public string GetAttribute(string key)
+  {
+    return _attributes[key] ?? throw new KeyNotFoundException($"Attribute '{key}' not found");
+  }
+
+
+  /// <summary>
+  /// Retrieves the value of an attribute if it exists; otherwise, returns a specified default value.
+  /// </summary>
+  /// <param name="key">The key of the attribute.</param>
+  /// <param name="defaultValue">The default value to return if the attribute does not exist.</param>
+  /// <returns>The value of the attribute if it exists; otherwise, the specified default value.</returns>
+  [MethodImpl(MethodImplOptions.AggressiveInlining)]
+  public string GetAttributeOrDefault(string key, string defaultValue)
+  {
+    return _attributes.GetValueOrDefault(key, defaultValue);
+  }
+
+
+  /// <summary>
   /// Sets an attribute on this <see cref="SvgNode"/>.
   /// </summary>
   /// <param name="key">The attribute name.</param>
   /// <param name="value">The attribute value.</param>
+  [MethodImpl(MethodImplOptions.AggressiveInlining)]
   public void SetAttribute(string key, string value)
   {
     _attributes[key] = value;
@@ -150,17 +227,90 @@ public record SvgNode
   /// Removes an attribute from this <see cref="SvgNode"/>.
   /// </summary>
   /// <param name="key">The attribute name.</param>
+  [MethodImpl(MethodImplOptions.AggressiveInlining)]
   public void RemoveAttribute(string key)
   {
     _attributes.Remove(key);
   }
 
+
   /// <summary>
   /// Clears all attributes from this <see cref="SvgNode"/>.
   /// </summary>
+  [MethodImpl(MethodImplOptions.AggressiveInlining)]
   public void ClearAttributes()
   {
     _attributes.Clear();
+  }
+
+
+  /// <summary>
+  /// Transfers attributes from the current SvgNode to the specified target SvgNode.
+  /// </summary>
+  /// <param name="node">The target SvgNode to which the attributes will be transferred.</param>
+  /// <param name="skipExisting">If true, existing attributes in the target node will not be overwritten.</param>
+  public void TransferAttributesTo(SvgNode node, bool skipExisting = false)
+  {
+    foreach(var kvp in _attributes)
+    {
+      if(node.HasAttribute(kvp.Key) && skipExisting)
+        continue;
+
+      node.SetAttribute(kvp.Key, kvp.Value);
+    }
+  }
+
+
+  /// <summary>
+  /// Transfers specified attributes from this node to the given node.
+  /// </summary>
+  /// <param name="attributes">The collection of attribute keys to be transferred.</param>
+  /// <param name="node">The target <see cref="SvgNode"/> to which attributes will be transferred.</param>
+  /// <param name="skipExisting">If set to true, existing attributes in the target node will not be overwritten.</param>
+  public void TransferAttributesTo(IEnumerable<string> attributes, SvgNode node, bool skipExisting = false)
+  {
+    foreach(var attr in attributes)
+    {
+      if(HasAttribute(attr) && (node.HasAttribute(attr) == false || skipExisting == false))
+      {
+        node.SetAttribute(attr, GetAttribute(attr));
+      }
+    }
+  }
+
+
+  /// <summary>
+  /// Transfers all attributes from the specified <see cref="SvgNode"/> to the current instance.
+  /// </summary>
+  /// <param name="node">The node from which attributes are to be transferred.</param>
+  /// <param name="skipExisting">Indicates whether existing attributes should be skipped.</param>
+  public void TransferAttributesFrom(SvgNode node, bool skipExisting = false)
+  {
+    foreach(var kvp in node.Attributes)
+    {
+      if(HasAttribute(kvp.Key) && skipExisting)
+        continue;
+
+      _attributes[kvp.Key] = kvp.Value;
+    }
+  }
+
+
+  /// <summary>
+  /// Transfers attributes from the specified <see cref="SvgNode"/> to the current node.
+  /// </summary>
+  /// <param name="attributes">The collection of attribute keys to be transferred.</param>
+  /// <param name="node">The node from which attributes will be transferred.</param>
+  /// <param name="skipExisting">Specifies whether existing attributes in the current node should be skipped. Defaults to false.</param>
+  public void TransferAttributesFrom(IEnumerable<string> attributes, SvgNode node, bool skipExisting = false)
+  {
+    foreach(var attr in attributes)
+    {
+      if(node.HasAttribute(attr) && (HasAttribute(attr) == false || skipExisting == false))
+      {
+        SetAttribute(attr, node.GetAttribute(attr));
+      }
+    }
   }
 
 
@@ -240,6 +390,11 @@ public record SvgNode
     {
       element.AppendChild(child.ToAngleSharpElement());
     }
+    
+    if(string.IsNullOrEmpty(TextContent) == false)
+    {
+      element.TextContent = TextContent;
+    }
 
     return element;
   }
@@ -297,6 +452,11 @@ public record SvgNode
 
   // INTERNAL METHODS
   // ----------------------------------------------------------------------------------------------------------
+
+  internal void OnSetTextContent(string textContent)
+  {
+    TextContent = textContent;
+  }
 
   /// <summary>
   /// Called when this node is added to a parent node.

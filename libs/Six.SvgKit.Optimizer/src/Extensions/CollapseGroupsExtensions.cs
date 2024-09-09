@@ -1,20 +1,10 @@
-﻿namespace Six.SvgKit.Optimizer;
+﻿using JetBrains.Annotations;
 
-public static partial class SvgOptimizer
+namespace Six.SvgKit.Optimizer;
+
+[PublicAPI]
+public static class CollapseGroupsExtensions
 {
-  /// <summary>
-  /// Remove container elements in the document that have no children or meaningful attributes,
-  /// excluding the <c>&lt;svg&gt;</c> element which is ignored.
-  /// </summary>
-  /// <param name="builder">The <see cref="SvgQueryBuilder"/> instance to operate on.</param>
-  /// <returns>The modified <see cref="SvgQueryBuilder"/> instance.</returns>
-  public static SvgQueryBuilder RemoveEmptyContainers(this SvgQueryBuilder builder)
-  {
-    RemoveEmptyContainersInternal(builder.Ast.Root);
-    return builder;
-  }
-
-
   /// <summary>
   /// Finds groups that effectively do nothing and flattens them, preserving the contents of the groups.
   /// </summary>
@@ -32,20 +22,6 @@ public static partial class SvgOptimizer
     }
 
     return builder;
-  }
-
-
-  // PRIVATE METHODS
-  // ----------------------------------------------------------------------------------------------------------
-  static void RemoveEmptyContainersInternal(SvgNode node)
-  {
-    node.Children.RemoveAll(child =>
-      child.IsContainer && !child.Attributes.Any() && !child.Children.Any());
-
-    foreach(var child in node.Children)
-    {
-      RemoveEmptyContainersInternal(child);
-    }
   }
 
   static void CollapseGroupsInternal(SvgNode node)
@@ -105,7 +81,6 @@ public static partial class SvgOptimizer
       node.Parent?.Children.Remove(node);
     }
   }
-
 
   static readonly HashSet<string> _animationElements =
   [

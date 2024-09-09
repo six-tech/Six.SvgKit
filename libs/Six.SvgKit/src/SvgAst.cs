@@ -11,7 +11,7 @@ public class SvgAst
   internal readonly IDocument Document; // AngleSharp document
 
   #region PROPERTIES
-  
+
   /// <summary>
   /// Gets the SVG object associated with this instance.
   /// </summary>
@@ -23,11 +23,11 @@ public class SvgAst
   public SvgNode Root { get; }
 
   #endregion
-  
-  
+
+
   // CTOR / DISPOSAL
   // ----------------------------------------------------------------------------------------------------------
-  
+
   /// <summary>
   /// Initializes a new instance of the <see cref="SvgAst"/> class using an SVG object and an SVG string.
   /// </summary>
@@ -39,7 +39,7 @@ public class SvgAst
     // Use AngleSharp to parse the SVG string
     var config = Configuration.Default.WithXml();
     var context = BrowsingContext.New(config);
-    
+
     Document = context.OpenAsync(res => res.Content(svgString).Header("Content-Type", "text/xml")).Result;
     //Document = context.OpenAsync(req => req.Content(svgString)).Result;
 
@@ -58,14 +58,24 @@ public class SvgAst
   /// <returns>The root node of the SVG AST.</returns>
   SvgNode BuildAst(Svg svg, IElement element)
   {
-    var node = new SvgNode(svg, element.TagName.ToLowerInvariant()); // Use lowercase tag names
+    var node = new SvgNode(svg, element.TagName.ToLowerInvariant());
 
-    foreach (var attribute in element.Attributes)
+    if(element.TagName.Equals("text", StringComparison.OrdinalIgnoreCase)
+       || element.TagName.Equals("tspan", StringComparison.OrdinalIgnoreCase)
+       || element.TagName.Equals("tref", StringComparison.OrdinalIgnoreCase))
     {
-      node.SetAttribute(attribute.Name, attribute.Value); 
+      if(string.IsNullOrEmpty(element.TextContent) == false)
+      {
+        node.OnSetTextContent(element.TextContent);
+      }  
+    }
+    
+    foreach(var attribute in element.Attributes)
+    {
+      node.SetAttribute(attribute.Name, attribute.Value);
     }
 
-    foreach (var childElement in element.Children)
+    foreach(var childElement in element.Children)
     {
       node.AddChild(BuildAst(svg, childElement));
     }

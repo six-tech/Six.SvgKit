@@ -2,43 +2,9 @@
 
 namespace SvgKit.Optimizer.Test.Unit;
 
-public partial class SvgOptimizerTests
+public class RemoveEmptyTextTests
 {
-  [Fact]
-  public void RemoveXmlDeclaration_SetsOmitXmlDeclarationToTrue()
-  {
-    // Arrange
-    var svg = SixSvg.FromString("<svg></svg>");
-    var builder = new SvgQueryBuilder(svg);
-
-    // Act
-    builder.RemoveXmlDeclaration();
-
-    // Assert
-    Assert.True(builder.Svg.OmmitXmlDeclaration);
-  }
-
-
-  [Fact]
-  public void RemoveEmptyNodes_RemovesEmptyNodes()
-  {
-    // Arrange
-    var svg = SixSvg.FromString("<svg><g id='empty-group'></g><path d='' /><rect /><circle /></svg>");
-    var builder = new SvgQueryBuilder(svg);
-
-    // Act
-    var result = builder
-      .RemoveEmptyNodes()
-      .Build();
-
-    // Assert
-    var rootChildren = result.ModifiedSvg.Ast.Root.Children;
-
-    Assert.DoesNotContain(rootChildren, n => n.Name == "g");
-    Assert.DoesNotContain(rootChildren, n => n.Name == "path");
-    Assert.DoesNotContain(rootChildren, n => n.Name == "rect");
-    Assert.DoesNotContain(rootChildren, n => n.Name == "circle");
-  }
+  
 
   [Fact]
   public void RemoveEmptyText_RemovesEmptyTextElements()
@@ -52,6 +18,7 @@ public partial class SvgOptimizerTests
           <text id='non-empty-text'>Non-empty</text>
           <g><text id='nested-empty-text'></text></g>
         </svg>");
+    
     var builder = new SvgQueryBuilder(svg);
 
     // Act
@@ -73,8 +40,9 @@ public partial class SvgOptimizerTests
 
     // Check that nested empty text element is removed
     var group = result.ModifiedSvg.Ast.Root.Children.FirstOrDefault(n => n.Name == "g");
+    
     Assert.NotNull(group);
-    Assert.DoesNotContain(group!.Children,
+    Assert.DoesNotContain(group.Children,
       n => n.Attributes.ContainsKey("id") && n.Attributes["id"] == "nested-empty-text");
   }
 
