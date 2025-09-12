@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\libs\Six.SvgKit.Optimizer\Six.SvgKit.Optimizer.csproj" />
+        <ProjectReference Include="..\..\libs\Six.SvgKit\Six.SvgKit.csproj" />
+    </ItemGroup>
+
+</Project>

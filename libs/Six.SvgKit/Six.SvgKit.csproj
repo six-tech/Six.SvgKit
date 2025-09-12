@@ -1,24 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
-    </PropertyGroup>
-
     <ItemGroup>
-        <InternalsVisibleTo Include="Six.SvgKit.Test.Unit"/>
-        <InternalsVisibleTo Include="Six.SvgKit.Optimizer.Test.Unit"/>
+        <InternalsVisibleTo Include="Six.SvgKit.Tests.Unit"/>
+        <InternalsVisibleTo Include="Six.SvgKit.Optimizer.Tests.Unit"/>
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.2.0" />
+        <PackageReference Include="Magick.NET-Q8-AnyCPU" Version="14.8.2" />
         <PackageReference Include="Svg" Version="3.4.7"/>
-        <PackageReference Include="AngleSharp" Version="1.2.0-beta.439" />
-        <PackageReference Include="AngleSharp.Xml" Version="1.0.0"/>
-        
-        <PackageReference Update="DotNet.ReproducibleBuilds" Version="1.2.25">
-          <PrivateAssets>all</PrivateAssets>
-          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
+        <PackageReference Include="AngleSharp" Version="1.3.0" />
+        <PackageReference Include="AngleSharp.Xml" Version="1.0.0"/>        
     </ItemGroup>
 
 </Project>

@@ -1,22 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
-    </PropertyGroup>
-
     <ItemGroup>
-        <InternalsVisibleTo Include="Six.SvgKit.Test.Unit"/>
-        <InternalsVisibleTo Include="Six.SvgKit.Optimizer.Test.Unit"/>
+        <InternalsVisibleTo Include="Six.SvgKit.Tests.Unit"/>
+        <InternalsVisibleTo Include="Six.SvgKit.Optimizer.Tests.Unit"/>
         
         <ProjectReference Include="..\Six.SvgKit\Six.SvgKit.csproj"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <PackageReference Include="Svg" Version="3.4.7"/>
-        <PackageReference Update="DotNet.ReproducibleBuilds" Version="1.2.25">
-            <PrivateAssets>all</PrivateAssets>
-            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-        </PackageReference>
     </ItemGroup>
 
 </Project>

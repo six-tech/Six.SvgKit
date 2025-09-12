@@ -5,7 +5,7 @@
 <!-- IMPORTANT: Exclude .shproj or .shproj will fail to load into the solution -->
 <Project>
     <ItemGroup Condition="'$(MSBuildProjectExtension)' != '.shproj'">
-        <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.2.4">
+        <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.2.25">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>

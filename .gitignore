@@ -98,9 +98,6 @@ StyleCopReport.xml
 *.svclog
 *.scc
 
-# Rider files
-.idea
-
 # Chutzpah Test files
 _Chutzpah*
 
@@ -133,7 +130,6 @@ $tf/
 # ReSharper is a .NET coding add-in
 _ReSharper*/
 *.[Rr]e[Ss]harper
-*.DotSettings.user
 
 # TeamCity is a build add-in
 _TeamCity*
@@ -288,6 +284,7 @@ FakesAssemblies/
 .ntvs_analysis.dat
 node_modules/
 
+
 # Visual Studio 6 build log
 *.plg
 
@@ -400,34 +397,14 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
-# USER CUSTOM
-# --------------------------------------------------
+# Docs
+[Dd]ocs/dist/
 
-# Ignore everything under _db
-# BUT KEEP REDIS AND KEYDB CONFIG FILES!!!
-# KEEP DYNAMODB FOLDER!!!
-_db/*
-!/_db/redis/
-!/_db/keydb/
-!/_db/dynamodb/
-_db/redis/*
-_db/keydb/*
-_db/dynamodb/*
-!/_db/redis/redis.conf
-!/_db/keydb/keydb.conf
-!/_db/dynamodb/dynamodb.conf
-
-
-# BUILDKIT CUSTOM
 # ----------------------------------------------------
 # Ignore .env file (possibly) containing credentials
 .env
-
-package-logs/
 
 # Build Artifacts
 [Aa]rtifact*/
 .[Aa]rtifacts*/
 .artifacts/
-
-svg
