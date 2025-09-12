@@ -245,6 +245,18 @@ docsConfig.Title = AnsiConsole.Prompt(
 
 AnsiConsole.WriteLine();
 
+// JetBrains Rider AI Configuration
+AnsiConsole.MarkupLine("[cyan]JetBrains Rider AI Configuration[/]");
+AnsiConsole.WriteLine();
+
+var configureRiderAI = AnsiConsole.Prompt(
+    new ConfirmationPrompt("[green]Configure JetBrains Rider AI for conventional commit messages?[/]")
+    {
+        DefaultValue = false
+    });
+
+AnsiConsole.WriteLine();
+
 // Update Directory.Build.props
 if (HasNuGetConfigChanges(nugetConfig))
 {
@@ -285,7 +297,26 @@ if (HasDocsConfigChanges(docsConfig) || !string.IsNullOrEmpty(nugetConfig.Reposi
         });
 }
 
-// Final summary
+// Configure JetBrains Rider AI
+if (configureRiderAI)
+{
+    await AnsiConsole.Status()
+        .Spinner(Spinner.Known.Dots)
+        .StartAsync("Configuring JetBrains Rider AI...", async ctx =>
+        {
+            try
+            {
+                ConfigureRiderAI(setupContext.ProjectName);
+                AnsiConsole.MarkupLine("[green]✓ JetBrains Rider AI configured successfully[/]");
+            }
+            catch (Exception ex)
+            {
+                AnsiConsole.MarkupLine($"[red]Error configuring JetBrains Rider AI: {ex.Message}[/]");
+            }
+            await Task.CompletedTask;
+        });
+}
+
 AnsiConsole.WriteLine();
 AnsiConsole.Write(new Rule("[green]Setup Complete![/]").LeftJustified());
 
@@ -295,15 +326,17 @@ var summaryPanel = new Panel(
     [green]✓[/] .NET packages restored
     [green]✓[/] Documentation dependencies installed
     [green]✓[/] Configuration files updated
-    
+    {(configureRiderAI ? "[green]✓[/] JetBrains Rider AI configured" : "[grey]○[/] JetBrains Rider AI skipped")}
+
     [yellow]Project:[/] {setupContext.ProjectName}
     [yellow]Package Manager:[/] {packageManager}
-    
+
     [cyan]Next Steps:[/]
     1. Review the updated `libs/Directory.Build.props`
     2. Review the updated: `docs/astro.config.mjs`
-    3. Run tests: [grey]dotnet run build/tests-run.cs[/]
-    4. View documentation: [grey]cd docs && {packageManager} run dev[/]
+    {(configureRiderAI ? "3. Review the created Rider AI configuration in `.idea/.idea.{setupContext.ProjectName}/.idea/workspace.xml`" : "3. Run tests: [grey]dotnet run scripts/tests-run.cs[/]")}
+    {(configureRiderAI ? "4. Run tests: [grey]dotnet run scripts/tests-run.cs[/]" : "4. View documentation: [grey]cd docs && {packageManager} run dev[/]")}
+    {(configureRiderAI ? "5. View documentation: [grey]cd docs && {packageManager} run dev[/]" : "")}
     """)
     .Border(BoxBorder.Rounded)
     .BorderColor(Color.Green)
@@ -525,6 +558,40 @@ void UpdateAstroConfig(string projectName, DocsConfiguration docsConfig, NuGetCo
     }
     
     File.WriteAllText(filePath, content);
+}
+
+void ConfigureRiderAI(string projectName)
+{
+    if (string.IsNullOrEmpty(projectName))
+    {
+        throw new ArgumentException("Project name cannot be empty");
+    }
+
+    // Create directory structure: .idea/.idea.{projectName}/.idea/
+    var baseDir = Path.Combine(".idea", $".idea.{projectName}", ".idea");
+    Directory.CreateDirectory(baseDir);
+
+    // Create workspace.xml file
+    var workspaceXmlPath = Path.Combine(baseDir, "workspace.xml");
+    var workspaceXmlContent = @"<?xml version=""1.0"" encoding=""UTF-8""?>
+<project version=""4"">
+  <component name=""AIAssistantCustomInstructionsStorage"">
+    <option name=""instructions"">
+      <map>
+        <entry key=""AIAssistant.VCS.GenerateCommitMessage"">
+          <value>
+            <AIAssistantStoredInstruction>
+              <option name=""actionId"" value=""AIAssistant.VCS.GenerateCommitMessage"" />
+              <option name=""content"" value=""1) Describe all changes in a short and descriptive manner.&#10;&#10;2) ALWAYS use conventional commit format. &#10;Examples:&#10;&#10;Good:&#10;ref: Refactored this and that&#10;docs: Updated documentation for this and that&#10;fix: Fixed issues #284343434&#10;&#10;Bad:&#10;Refactored this and that&#10;Updated documentation for this and that&#10;Fixed issues #284343434&#10;&#10;3) Never surround commit messages with ```&#10;&#10;4) Use bullet points for multiple changes"" />
+            </AIAssistantStoredInstruction>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>";
+
+    File.WriteAllText(workspaceXmlPath, workspaceXmlContent);
 }
 
 // Data classes
