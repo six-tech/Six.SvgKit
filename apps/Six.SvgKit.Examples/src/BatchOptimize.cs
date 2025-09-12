@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using JetBrains.Annotations;
-using Six.SvgKit.Optimizer;
+﻿using Six.SvgKit.Optimizer;
 
 namespace Six.SvgKit.Examples;
 
