@@ -1,0 +1,145 @@
+---
+title: AGENTS.md
+description: Understanding and using AGENTS.md for AI coding agent guidance
+---
+
+import {Aside, Steps} from '@astrojs/starlight/components'
+
+
+# What is AGENTS.md?
+
+[AGENTS.md](https://agents.md/) is a standardized markdown file that contains project-specific instructions, context, and guidelines
+specifically designed for AI coding agents.
+
+While README.md files are written for humans with quick starts, project descriptions, and contribution guidelines,
+**`AGENTS.md` complements this by containing the extra, sometimes detailed context coding agents need: build steps,
+tests, and conventions that might clutter a README or aren't relevant to human contributors.**
+
+The format was intentionally kept separate to:
+- **Give agents a clear, predictable place for instructions**
+- **Keep READMEs concise and focused on human contributors**
+- **Provide precise, agent-focused guidance** that complements existing README and docs
+
+<Aside type="note">
+    **Open Format**: AGENTS.md is an open, community-driven format. If you're building or using coding agents and find
+    this helpful, feel free to adopt and contribute to its evolution.
+
+    See more at [AGENTS.md](https://agents.md/)
+</Aside>
+
+
+# AGENTS.md in this Template
+
+The **Six Solution Template** includes a comprehensive `AGENTS.md` file that provides detailed guidance for AI coding
+agents working with .NET C# projects. This file serves as the authoritative source for project-specific context and instructions.
+
+<Aside type="tip">
+    **90% Ready-to-Use**: The `AGENTS.md` file in this template is essentially complete and covers all the features
+    that the **Six Solution Template** provides. You basically only need to modify the **🏗️ Project Overview** section to
+    describe your specific project instead of the template itself.
+
+    All other sections (setup commands, testing instructions, NuGet packaging, documentation workflows, code standards,
+    etc.) are already configured and ready to use as-is for your .NET project.
+</Aside>
+
+
+# Key Sections in Our AGENTS.md
+
+## 🏗️ Project Overview
+Explains that **Six Solution Template** is a GitHub template repository for creating .NET C# projects with professional
+tooling, automated workflows, and documentation setup.
+
+## 🚀 Setup Commands
+Provides both automated and manual setup instructions, including:
+- Prerequisites (.NET 10 SDK, Docker, Git)
+- Automated setup using `setup.cs`
+- Manual configuration steps
+- Essential development commands
+
+## 🧪 Testing Instructions
+Comprehensive testing guidance including:
+- Commands for running tests with coverage
+- Test project structure and organization
+- Coverage requirements and reporting
+
+## 📦 NuGet Packaging
+Detailed instructions for package creation and publishing:
+- Environment variable configuration
+- Packaging commands for different environments
+- Package metadata management
+
+## 📚 Documentation
+Documentation system guidance:
+- Astro.js Starlight with Six theme
+- Content structure and organization
+- Development and deployment workflows
+
+
+
+# Best Practices
+
+## Content Guidelines
+
+<Steps>
+
+    1. **Be Specific and Actionable** - Provide exact commands and clear instructions rather than vague descriptions.
+
+    2. **Include Context** - Explain why certain practices or tools are used, not just how to use them.
+
+    3. **Keep It Current** - Treat AGENTS.md as living documentation that evolves with your project.
+
+    4. **Focus on Agent Needs** - Include information that agents need but might not be obvious to humans.
+
+</Steps>
+
+## Organization Tips
+
+- **Use Clear Headings** - Organize content with descriptive section headers
+- **Provide Examples** - Include code examples and command samples
+- **Link to Resources** - Reference external documentation when appropriate
+- **Version Control** - Keep AGENTS.md in version control alongside your code
+
+<Aside type="danger">
+    **Avoid Sensitive Information**: Never include API keys, passwords, or other sensitive data in AGENTS.md. Use
+    environment variables and reference them in the instructions.
+</Aside>
+
+
+# Large Projects and Monorepos
+
+For large monorepos or projects with multiple components, you can use **nested AGENTS.md files** for subprojects. Place an AGENTS.md file inside each package or subproject directory. Agents automatically read the nearest file in the directory tree, so the closest one takes precedence.
+
+## Example Structure
+
+```
+MyProject/
+├── AGENTS.md                    # Main project instructions
+├── frontend/
+│   ├── AGENTS.md               # Frontend-specific instructions
+│   └── src/...
+├── backend/
+│   ├── AGENTS.md               # Backend-specific instructions
+│   └── src/...
+└── docs/
+    ├── AGENTS.md               # Documentation-specific instructions
+    └── content/...
+```
+
+This approach allows each subproject to have tailored instructions while maintaining overall project guidance.
+
+
+# Maintaining AGENTS.md
+
+**Living Documentation**: The most effective AGENTS.md files are those that are actively maintained and updated as
+the project evolves. Regular maintenance ensures agents always have current, accurate information.
+
+
+
+# Resources
+
+For more information about AGENTS.md:
+
+- **Official Site**: [agents.md](https://agents.md/) - Complete documentation and examples
+
+
+

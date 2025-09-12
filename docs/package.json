@@ -1,0 +1,29 @@
+{
+  "name": "six-solution-template-docs",
+  "version": "1.0.0",
+  "description": "Documentation for Six.SolutionTemplate",
+  "main": "index.js",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "keywords": [
+    "project-template",
+    "dotnet",
+    "documentation",
+    "six-tech",
+    "six.technology"
+  ],
+  "author": "Six Technology",
+  "license": "MIT",
+  "dependencies": {
+    "@astrojs/starlight": "^0.35.2",
+    "@fontsource/inter": "^5.2.6",
+    "@fontsource/jetbrains-mono": "^5.2.6",
+    "@six-tech/starlight-theme-six": "^1.0.15",
+    "astro": "^5.13.5",
+    "sharp": "^0.34.3"
+  }
+}

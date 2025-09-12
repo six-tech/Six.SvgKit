@@ -1,0 +1,40 @@
+---
+title: Build & Test Workflow
+description: GitHub Workflow that automatically builds and tests the solution.
+---
+
+# Overview
+The **PR Test Workflow** (`pr-test.yml`) is the primary quality gate for all pull requests targeting the `main` branch. 
+This workflow automatically builds the solution, runs comprehensive tests, generates coverage reports, and provides 
+detailed feedback to developers before code can be merged.
+
+**When it runs:**
+- ✅ **Pull Request Opened**: Triggers on new PRs targeting `main`
+- ✅ **Pull Request Updated**: Runs on every commit pushed to PR branches
+- ✅ **Pull Request Synchronized**: Executes when PR is updated with new commits
+- ❌ **Direct Push to Main**: Does not run on direct commits to `main` (protected branch)
+
+
+# Coverage Analysis and Reporting
+The workflow includes a coverage analysis step that measures how much of the codebase is tested by the unit tests. 
+This helps maintain high code quality and ensures that new changes do not introduce untested code.
+
+## Coverage Features
+- **Instrumentation**: Instruments code for coverage measurement
+- **Data Collection**: Gathers execution data during test runs
+- **Coverage Reports**: Generates detailed coverage metrics
+- **Quality Metrics**: Ensures adequate test coverage
+
+## Report Generation
+- **Data Processing**: Analyzes collected coverage data
+- **Report Formats**: Generates multiple report formats (HTML, XML, etc.)
+- **Quality Gates**: Applies coverage thresholds and rules
+- **Artifact Preparation**: Prepares reports for upload
+
+## Artifact Management
+- **Conditional Upload**: `if: always()` ensures upload even on failure
+- **Retention**: Keeps artifacts for 30 days for analysis
+
+
+
+

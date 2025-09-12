@@ -1,0 +1,241 @@
+---
+title: Directory Structure
+description: Guide to the Six Solution Template directory structure and organization conventions
+---
+
+import {Aside} from '@astrojs/starlight/components'
+
+# Introduction
+
+The **Six Solution Template** establishes a clear, logical directory structure that organizes your .NET projects 
+by purpose and type. 
+
+This structure enables consistent tooling, build processes, and team workflows while maintaining flexibility for different project types.
+
+
+## Overview
+
+The template organizes projects into five main directories, each serving a specific purpose:
+
+```
+Six.SolutionTemplate/
+├── libs/                    # Library projects (.csproj with type 'library')
+├── apps/                    # Application projects (.csproj with type 'exe')
+├── tests/                   # Test projects
+├── benchmarks/              # Performance benchmark projects
+└── docs/                    # In-repository documentation
+```
+
+## Directory.Build.props Inheritance
+
+All directories use a hierarchical configuration system where settings cascade from root to specific directories:
+
+### Configuration Hierarchy
+
+1. **Root Directory.Build.props** - Base settings for all projects
+2. **Directory-specific Directory.Build.props** - Specialized settings that extend the root
+3. **Individual project files** - Final project-specific customizations
+
+
+----
+
+# Libs
+
+The `libs/` directory contains all library projects that can be packaged as NuGet packages.
+
+## Directory Structure
+
+```
+libs/
+├── Directory.Build.props       # Library-specific configuration
+├── Directory.Build.targets     # Library-specific build targets
+└── [ProjectName]/
+    ├── src/                    # Source code
+    ├── project_icon.png        # Package icon (128x128 recommended)
+    ├── README.md               # Package documentation
+    └── GlobalUsings.cs         # Global using statements
+```
+
+## Directory.Build.props Configuration
+
+The `libs/Directory.Build.props` file configures library-specific settings:
+
+```xml
+<Project>
+    <!-- Library-specific properties -->
+    <IsPackable>true</IsPackable>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+    <!-- Package metadata defaults -->
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <Authors>Six Technology</Authors>
+    <Company>Six Technology</Company>
+
+    <!-- Source Link for debugging -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+</Project>
+```
+
+<Aside type="note">
+    The `nuget-pack.cs` script automatically scans the `libs/` directory to discover and package all library projects.
+</Aside>
+
+
+----
+
+# Apps
+
+The `apps/` directory contains all application projects including console apps, web APIs, web applications, desktop applications, etc.
+
+## Directory Structure
+
+```
+apps/
+├── Directory.Build.props       # Application-specific configuration
+└── [ProjectName]/
+    ├── src/                    # Source code
+    ├── project_icon.png        # Application icon
+    ├── README.md               # Application documentation
+    ├── GlobalUsings.cs         # Global using statements
+    └── appsettings.json        # Application configuration (for web apps)
+```
+
+## Directory.Build.props Configuration
+
+The `apps/Directory.Build.props` file configures application-specific settings:
+
+```xml
+<Project>
+    <!-- Application-specific properties -->
+    <OutputType>Exe</OutputType>
+    <UseAppHost>true</UseAppHost>
+    <SelfContained>false</SelfContained>
+
+    <!-- Application metadata -->
+    <Product>$(AssemblyName)</Product>
+    <Description>Application built with Six.SolutionTemplate</Description>
+
+    <!-- Runtime configuration -->
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <PublishReadyToRun>true</PublishReadyToRun>
+</Project>
+```
+
+
+----
+
+# Tests
+
+The `tests/` directory contains all test projects organized by testing type and scope.
+
+## Naming Convention
+
+Test projects follow a strict naming convention: `[ProjectName].Test.[Type]`
+
+```
+tests/
+├── Directory.Build.props               # Test-specific configuration
+├── Directory.Build.targets             # Test-specific build targets
+├── [ProjectName].Test.Unit/            # Unit tests
+├── [ProjectName].Test.Integration/     # Integration tests
+├── [ProjectName].Test.E2E/             # End-to-end tests
+└── [ProjectName].Test.Performance/     # Performance tests
+```
+
+## Directory.Build.props Configuration
+
+The `tests/Directory.Build.props` file configures test-specific settings:
+
+```xml
+<Project>
+    <!-- Test project properties -->
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+
+    <!-- Code coverage configuration -->
+    <CollectCoverage>true</CollectCoverage>
+    <CoverletOutputFormat>cobertura;html;json</CoverletOutputFormat>
+    <CoverletOutput>$(MSBuildThisFileDirectory)coverage/</CoverletOutput>
+    <Threshold>80</Threshold>
+    <ThresholdType>line,branch,method</ThresholdType>
+
+    <!-- Test framework settings -->
+    <UseSourceLink>true</UseSourceLink>
+</Project>
+```
+
+## Test Types
+
+- **Unit Tests**: `[ProjectName].Test.Unit` - Test individual components in isolation
+- **Integration Tests**: `[ProjectName].Test.Integration` - Test component interactions
+- **E2E Tests**: `[ProjectName].Test.E2E` - Test complete user workflows
+- **Performance Tests**: `[ProjectName].Test.Performance` - Test performance characteristics
+
+----
+
+# Benchmarks
+
+The `benchmarks/` directory contains performance benchmarking projects using BenchmarkDotNet.
+
+## Naming Convention
+
+Benchmark projects follow the naming convention: `[ProjectName].Benchmark`
+
+```
+benchmarks/
+├── Directory.Build.props       # Benchmark-specific configuration
+└── [ProjectName].Benchmark/
+    ├── src/                    # Benchmark source code
+    ├── GlobalUsings.cs         # Global using statements
+    └── README.md               # Benchmark documentation
+```
+
+## Directory.Build.props Configuration
+
+The `benchmarks/Directory.Build.props` file configures benchmark-specific settings:
+
+```xml
+<Project>
+    <!-- Benchmark-specific properties -->
+    <IsPackable>false</IsPackable>
+    <OutputType>Exe</OutputType>
+
+    <!-- Performance optimization -->
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+
+    <!-- Benchmark framework -->
+    <PackageReference Include="BenchmarkDotNet" Version="0.14.0" />
+    <PackageReference Include="BenchmarkDotNet.Diagnostics.Windows" Version="0.14.0" Condition="'$(OS)' == 'Windows_NT'" />
+</Project>
+```
+
+
+----
+
+# Docs
+
+The `docs/` directory contains the in-repository documentation site built with Astro.js Starlight.
+
+## Directory Structure
+
+```
+docs/
+├── astro.config.mjs            # Astro.js configuration
+├── src/
+│   ├── content/
+│   │   └── docs/               # Documentation pages (MDX)
+│   └── assets/                 # Images and other assets
+└── public/                     # Static assets (favicon, icons)
+```
+
+
+
+
+
+

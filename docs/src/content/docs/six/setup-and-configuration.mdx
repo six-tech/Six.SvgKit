@@ -1,0 +1,174 @@
+---
+title: Setup and Configuration
+description: How to install and configure Six Solution Template in your project
+---
+
+import {CardGrid, Card, Steps} from '@astrojs/starlight/components'
+
+# Introduction
+
+The **Six Solution Template** provides an automated setup process that handles all the initial configuration tasks,
+making it easy to get started with your new project.
+
+## Prerequisites
+
+Before running the setup, ensure you have the following tools installed:
+
+<CardGrid>
+
+<Card title="🔧 .NET 10 SDK" icon="download">
+### Required Tool
+- **Download**: [dotnet.microsoft.com/download](https://dotnet.microsoft.com/download)
+- **Purpose**: Builds and runs .NET projects, executes C# scripts
+- **Verification**: Run `dotnet --version` to check installation
+</Card>
+
+<Card title="📦 Package Managers" icon="npm">
+### Choose One
+#### pnpm (Recommended)
+- **Install**: `npm install -g pnpm`
+- **Advantages**: Faster, disk-efficient, better dependency management
+- **Website**: [pnpm.io](https://pnpm.io/)
+
+#### npm (Alternative)
+- **Included with**: [Node.js](https://nodejs.org/)
+- **Verification**: Run `npm --version` to check installation
+</Card>
+
+</CardGrid>
+
+# Quick Start
+
+After cloning the repository, run the automated setup from the solution root directory:
+
+```bash
+dotnet run setup.cs
+```
+
+The setup script will:
+1. ✅ Check all prerequisites
+2. 🔄 Restore .NET NuGet packages
+3. 📦 Install documentation dependencies
+4. ⚙️ Guide you through configuration
+5. 📝 Update project files automatically
+
+
+# Automated Setup Process
+
+<Steps>
+
+1. **Prerequisites Check**
+   The setup automatically verifies:
+   - **dotnet CLI** availability and version
+   - **pnpm** or **npm** installation
+   - **Solution file** detection (.slnx or .sln)
+
+2. **Package Restoration**
+   Automatically runs `dotnet restore` to restore all NuGet packages for the solution.
+
+3. **Documentation Dependencies**
+   Node packages needed for documentation are automatically installed using `pnpm` or `npm` in the `docs` directory.
+
+4. **Interactive Configuration**
+   The setup guides you through configuring your project with optional prompts:
+
+   **NuGet Package Configuration:**
+   - GitHub Repository URL
+   - Package authors and copyright
+   - Project description and URLs
+
+   **Documentation Configuration:**
+   - GitHub Pages URL and site title
+
+   > **Note**: All configuration fields are optional. Press Enter to skip and keep default values.
+
+5. **Automatic File Updates**
+   The setup automatically updates:
+
+   - **`libs/Directory.Build.props`**: NuGet package metadata and repository information
+   - **`docs/astro.config.mjs`**: Site configuration and GitHub Pages settings
+
+</Steps>
+
+
+---- 
+
+# Manual Setup (Alternative)
+
+If you prefer to set up manually or need to customize specific aspects:
+
+## 1. Restore .NET Packages
+```bash
+dotnet restore
+```
+
+## 2. Install Documentation Dependencies
+```bash
+cd docs
+pnpm install
+# or
+npm install
+```
+
+## 3. Configure NuGet Package Properties
+Edit `libs/Directory.Build.props`:
+```xml
+<PropertyGroup>
+  <RepositoryUrl>https://github.com/your-username/your-repo</RepositoryUrl>
+  <Authors>Your Name</Authors>
+  <Copyright>Copyright © 2024</Copyright>
+  <Description>Your project description</Description>
+  <PackageProjectUrl>https://your-project-url.com</PackageProjectUrl>
+</PropertyGroup>
+```
+
+## 4. Configure Documentation
+Edit `docs/astro.config.mjs`:
+```javascript
+export default defineConfig({
+  site: 'https://your-username.github.io/your-repo',
+  title: 'Your Project Documentation',
+  description: 'Your project description',
+  // ... other configuration
+});
+```
+
+
+
+
+# Troubleshooting
+
+## .NET CLI Not Found
+```
+Error: dotnet CLI is not installed
+```
+**Solution**: Install .NET 10 SDK from [dotnet.microsoft.com](https://dotnet.microsoft.com/download)
+
+## No Package Manager Found
+```
+Error: Neither pnpm nor npm is installed
+```
+**Solution**: Install Node.js (includes npm) from [nodejs.org](https://nodejs.org/) or pnpm with `npm install -g pnpm`
+
+
+## Solution File Not Found
+```
+Error: No solution file found in the current directory
+```
+**Solution**: Ensure you're running the setup from the repository root directory containing `.sln` or `.slnx` files
+
+## Package Installation Failures
+If package installation fails:
+1. Check your internet connection
+2. Verify Node.js version compatibility
+3. Try clearing package manager caches:
+   ```bash
+   # For pnpm
+   pnpm store prune
+   
+   # For npm
+   npm cache clean --force
+   ```
+
+
+

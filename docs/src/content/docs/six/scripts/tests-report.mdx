@@ -1,0 +1,69 @@
+---
+title: Coverage Reports
+description: Generate detailed HTML coverage reports with visual charts and interactive analysis
+---
+
+# Overview
+
+The **Coverage Reports** script (`tests-report.cs`) generates detailed HTML coverage reports from collected coverage data. It provides visual analysis, interactive charts, and comprehensive coverage information to help developers understand and improve test coverage.
+
+# Purpose
+
+The coverage reports script creates detailed reports by:
+- **Data Discovery**: Finds the latest coverage data from timestamped directories
+- **Report Generation**: Creates HTML reports using ReportGenerator
+- **Visual Analysis**: Provides charts and graphs for coverage visualization
+- **Interactive Features**: Enables detailed exploration of coverage data
+- **Browser Integration**: Automatically opens reports in the default browser
+
+# Usage
+
+```bash
+dotnet run scripts/tests-report.cs
+```
+
+## Prerequisites
+
+Before running the coverage reports script, you must have coverage data:
+1. Run `dotnet run scripts/tests-coverage.cs` to collect coverage data
+2. Ensure coverage data exists in timestamped directories
+3. Verify that coverage XML files are present
+
+## What It Does
+
+1. **Data Discovery**: Finds the latest coverage data files
+2. **Report Generation**: Creates HTML reports using ReportGenerator (Automatically installs ReportGenerator if needed)
+3. **Visual Analysis**: Generates charts and summary statistics
+4. **Browser Launch**: Opens the report in the default browser
+5. **Cleanup**: Removes temporary files and directories
+
+
+# Configuration
+
+## Report Settings
+
+You can modify ReportGenerator settings in the script:
+
+```csharp
+var result = await Cli.Wrap("reportgenerator")
+    .WithArguments($"-reports:\"{latestCoverageFile}\" -targetdir:\"{htmlReportsDir}\" -reporttypes:Html;Cobertura;JsonSummary")
+    .ExecuteAsync();
+```
+
+## Coverage Thresholds
+
+Customize coverage thresholds for recommendations:
+
+```csharp
+var lineThreshold = 0.8;  // 80% line coverage
+var branchThreshold = 0.8; // 80% branch coverage
+```
+
+
+# Integration with CI/CD
+
+```yaml
+# GitHub Actions example
+- name: Generate Coverage Reports
+  run: dotnet run scripts/tests-report.cs
+```

@@ -1,0 +1,22 @@
+﻿<Solution>
+  <Folder Name="/Apps/">
+    <Project Path="apps\Six.SvgKit.Examples\Six.SvgKit.Examples.csproj" Type="Classic C#" />
+  </Folder>
+  <Folder Name="/Libs/">
+    <Project Path="libs\Six.SvgKit.Optimizer\Six.SvgKit.Optimizer.csproj" Type="Classic C#" />
+    <Project Path="libs\Six.SvgKit\Six.SvgKit.csproj" Type="Classic C#" />
+    <File Path="libs\Directory.Build.props" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="tests\Six.SvgKit.Optimizer.Tests.Unit\Six.SvgKit.Optimizer.Tests.Unit.csproj" Type="Classic C#" />
+    <Project Path="tests\Six.SvgKit.Tests.Unit\Six.SvgKit.Tests.Unit.csproj" Type="Classic C#" />
+    <File Path="tests\Directory.Build.props" />
+  </Folder>
+  <Folder Name="/_config/">
+    <File Path="README.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="global.json" />
+    <File Path="nuget.config" />
+    <File Path="docs\astro.config.mjs" />
+  </Folder>
+</Solution>

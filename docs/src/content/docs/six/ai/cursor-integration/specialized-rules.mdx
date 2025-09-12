@@ -1,0 +1,47 @@
+---
+title: Specialized Rules
+description: Specialized development rules for specification-driven development and technical documentation
+---
+
+import { LinkCard, CardGrid, Aside } from '@astrojs/starlight/components';
+
+# Introduction
+
+The Specialized Rules provide guidance for specific development workflows including specification-driven development and comprehensive technical documentation practices. These rules enable structured, traceable development processes with clear requirements, design, and implementation phases.
+
+<Aside type="note">
+**Rule Interdependencies**: Many rules reference and build upon other rules to ensure consistent code generation. 
+    
+    For example, ASP.NET Core rules automatically incorporate C# coding style guidelines, so all generated API code follows the same performance patterns, memory management, and modern language features. 
+    
+    This creates a cohesive development experience where all code maintains consistent quality and style across different technologies.
+</Aside>
+
+# Available Rules
+
+<CardGrid>
+  <LinkCard title="Coding by Specifications Rules" description="Transform ideas into detailed specifications with requirements, design, and implementation tasks for structured development workflows" href="#coding-by-specifications-rules" />
+</CardGrid>
+
+
+<a id="coding-by-specifications-rules"></a>
+# Coding by Specifications Rules
+
+The Coding by Specifications Rules provide comprehensive guidance for transforming high-level ideas into detailed specifications with clear requirements, design documentation, and implementation tasks for structured development workflows.
+
+### What It Does
+
+This rule establishes:
+- Automated spec creation and requirement generation from high-level ideas
+- Structured three-phase process (requirements, design, implementation)
+- EARS format (Easy Approach to Requirements Syntax) for clear, testable requirements
+- Comprehensive design documentation with architecture and interfaces
+- Integration with development processes and CI/CD pipelines
+- Traceability from requirements through design to implementation tasks
+- Iterative refinement with feedback loops and validation processes
+- Reusable specification templates for consistent documentation
+
+### File Patterns
+- Specification files in `.kiro/specs/` directories
+- `requirements.md`, `design.md`, and `tasks.md` files
+- Project documentation and planning files

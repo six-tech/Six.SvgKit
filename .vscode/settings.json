@@ -1,0 +1,10 @@
+{
+  "kiroAgent.trustedCommands": [
+    "npm run build",
+    "dotnet restore *",
+    "Move-Item *",
+    "Remove-Item *",
+    "pnpm run *",
+    "dotnet run *"
+  ]
+}

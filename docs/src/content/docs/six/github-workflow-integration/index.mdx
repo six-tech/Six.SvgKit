@@ -1,0 +1,37 @@
+﻿---
+title: GitHub Workflows in Six Solution Template
+description: Automated CI/CD pipelines for testing, documentation deployment, and quality assurance using GitHub Actions
+---
+
+import {LinkCard, CardGrid, Aside} from '@astrojs/starlight/components';
+
+# Introduction
+
+The **Six Solution Template** includes **pre-configured GitHub Actions workflows** that automate essential
+development processes, ensuring consistent quality and streamlined deployment across all projects.
+
+<Aside type="note">
+    All workflows are designed to work seamlessly with the template's structure and scripts, providing
+    automated testing, documentation deployment, and quality assurance without manual configuration.
+    
+    ### Prerequisites
+
+    - **GitHub Repository**: Workflows run automatically in GitHub Actions
+    - **Template Scripts**: Workflows use the provided [scripts (C# file-based apps) that are used for CLI 
+    operations](./../scripts)
+    - **Repository Secrets**: Configure NuGet API keys and other credentials as needed as [described here](./../nuget-feeds/nuget-secrets)
+
+</Aside>
+
+# Available Workflows
+
+<CardGrid>
+    <LinkCard title="Pull Request Testing"
+              description="Automated testing pipeline that runs on every pull request with comprehensive test execution, coverage analysis, and quality checks"
+              href="github-test-workflow"/>
+    
+    <LinkCard title="Documentation Deployment"
+              description="Automated deployment of documentation site to GitHub Pages with build verification and deployment status tracking"
+              href="github-documentation-workflow"/>
+</CardGrid>
+

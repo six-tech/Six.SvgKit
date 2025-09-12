@@ -1,0 +1,241 @@
+---
+title: NuGet Packaging
+description: Automated NuGet package creation and publishing to multiple feeds with environment-based configuration
+---
+
+import {Aside, CardGrid, LinkCard} from '@astrojs/starlight/components'
+
+# Overview
+
+The **Six Solution Template** uses an automated NuGet mini-packaging system that streamlines the entire process
+from source code to published packages. The **NuGet Packaging** script (`nuget-pack.cs`) discovers all library projects, builds them with optimized configurations, creates properly versioned NuGet packages, and publishes them to your specified feeds with minimal manual intervention.
+
+# Purpose
+
+The NuGet packaging script automates package management by:
+- **Project Discovery**: Automatically finds all library projects in the solution
+- **Build and Pack**: Builds projects and creates NuGet packages
+- **Multi-Feed Support**: Publishes to local, development, staging, and production feeds
+- **Environment Configuration**: Uses environment variables for secure configuration
+- **Symbol Packages**: Creates and publishes symbol packages for debugging
+
+# Package Creation Process
+
+The script automatically discovers library projects by:
+- Scanning the `libs/` directory
+- Looking for `*.csproj` files
+- Excluding ignored projects
+- Handling project dependencies
+
+
+# Usage
+
+```bash
+# Package to local feed (default)
+dotnet run scripts/nuget-pack.cs
+
+# Package to local feed (explicit)
+dotnet run scripts/nuget-pack.cs --local
+
+# Package to development feed
+dotnet run scripts/nuget-pack.cs --dev
+
+# Package to staging feed
+dotnet run scripts/nuget-pack.cs --staging
+
+# Package to production feed
+dotnet run scripts/nuget-pack.cs --prod
+```
+
+## Arguments
+
+| Argument                   | Description                                |
+|----------------------------|--------------------------------------------|
+| `--local` or no argument   | Package to local feed                      |
+| `--dev` or `--development` | Package to development feed                |
+| `--staging`                | Package to staging feed                    |
+| `--prod` or `--production` | Package to production feed                 |
+| `--debug`                  | Use Debug configuration instead of Release |
+
+<Aside type="tip">
+    Currently, the version must be bumped manually in the `libs/Directory.Build.props` file.
+</Aside>
+
+
+# Environment Configuration
+
+The NuGet packaging system provides four distinct publishing workflows, each designed for specific use cases and environments.
+
+Therefore, the script requires specific environment variables to be configured based on your publishing targets.
+
+Therefore, please read about how NuGet feeds are configured and how to manage secrets here: 
+
+<CardGrid>
+    <LinkCard title="NuGet Feed Configuration" description="Learn how to configure NuGet package sources and feeds 
+    with this template, including local, development, staging, and production feeds." href="../../nuget-feeds/nuget-feeds/" />
+    <LinkCard title="NuGet Secrets Management" description="Secure management of NuGet feed credentials using 
+    environment variables, including setup instructions for different operating systems." href="../../nuget-feeds/nuget-secrets/" />
+</CardGrid>
+
+## NuGet Publishing Workflows
+
+<Aside type="tip">
+    #### Local Feed (Default)
+    
+    - **Purpose**: Development and testing    
+    - **Behavior**: Copies packages to local directory
+    - **Use Case**: Local development, testing, and validation
+
+    ```bash
+    # Pack and publish to local development feed (default)
+    dotnet run scripts/nuget-pack.cs
+
+    # One can also specify the local feed path explicitly
+    dotnet run scripts/nuget-pack.cs --local
+    ```    
+</Aside>
+<Aside type="tip">
+    #### Development Feed
+    
+    - **Purpose**: Internal development and testing
+    - **Behavior**: Publishes to development NuGet feed
+    - **Use Case**: Team development, integration testing
+    
+    - `NUGET_FEED_DEV_URL` - Endpoint for your development NuGet feed
+    - `NUGET_FEED_DEV_USERNAME` - Username for development feed authentication
+    - `NUGET_FEED_DEV_PAT` - Personal Access Token (PAT) for development feed authentication
+
+    ```bash
+    # Pack and publish to development feed
+    dotnet run scripts/nuget-pack.cs --dev
+    # or
+    dotnet run scripts/nuget-pack.cs --development
+    ```
+</Aside>
+
+<Aside type="tip">
+    #### Staging Feed
+
+    - **Purpose**: Pre-production validation
+    - **Behavior**: Publishes to staging NuGet feed
+    - **Use Case**: Pre-release validation, stakeholder testing
+    
+    - `NUGET_FEED_STAGING_URL` - Endpoint for your staging NuGet feed
+    - `NUGET_FEED_STAGING_USERNAME` - Username for staging feed authentication
+    - `NUGET_FEED_STAGING_PAT` - Personal Access Token (PAT) for staging feed authentication
+
+    ```bash
+    # Pack and publish to staging feed
+    dotnet run scripts/nuget-pack.cs --staging
+    ```
+</Aside>
+
+<Aside type="tip">
+    #### Production Feed
+
+    - **Purpose**: Public distribution
+    - **Behavior**: Publishes to production NuGet feed (e.g., NuGet.org)
+    - **Use Case**: Public releases, production distribution
+    
+    - `NUGET_FEED_PRODUCTION_URL` - Endpoint for your production NuGet feed (e.g., NuGet.org)
+    - `NUGET_FEED_PRODUCTION_USERNAME` - Username for production feed authentication
+    - `NUGET_FEED_PRODUCTION_PAT` - Personal Access Token (PAT) for production feed authentication
+
+    ```bash
+    # Pack and publish to production feed (e.g., NuGet.org)
+    dotnet run scripts/nuget-pack.cs --prod
+    # or
+    dotnet run scripts/nuget-pack.cs --production
+    ```
+
+    **Note:** For local-only publishing, only `NUGET_FEED_LOCAL_URL` is required. Additional variables are
+    automatically detected and used when present.
+</Aside>
+
+
+# Configuration
+
+## Project Filtering
+
+You can modify the ignored projects list:
+
+```csharp
+var ignoredProjects = new List<string>
+{
+    // Add project names to ignore here
+    // Example: "Six.Example.TestProject"
+};
+```
+
+## Search Directories
+
+You can modify the search directories:
+
+```csharp
+var searchDirectories = new List<string>
+{
+    "libs"  // Default to libs directory
+};
+```
+
+## Ignored Projects
+
+You can specify projects that should be excluded from packaging by adding their full project names to the `ignoredProjects` list:
+
+``` csharp
+// In scripts/nuget-pack.cs
+var ignoredProjects = new List&lt;string&gt;
+{
+    "Six.Example.TestProject",        // Exclude test projects
+    "Six.Example.BenchmarkProject",   // Exclude benchmark projects
+    "Six.Example.ExperimentalProject" // Exclude experimental features
+};
+```
+
+<Aside type="note">
+    Project names should match the exact filename without the `.csproj` extension. The script automatically filters out these projects during discovery, ensuring they are not included in the packaging process.
+</Aside>
+
+
+## Build Configuration
+
+The script supports both Debug and Release configurations:
+- **Default**: Release configuration
+- **Override**: Use `--debug` argument for Debug configuration
+
+
+
+# Integration with CI/CD
+
+```yaml
+# GitHub Actions example
+- name: Package NuGet Packages
+  run: dotnet run scripts/nuget-pack.cs --prod
+  env:
+    NUGET_FEED_PRODUCTION_URL: ${{ secrets.NUGET_FEED_URL }}
+    NUGET_FEED_PRODUCTION_USERNAME: ${{ secrets.NUGET_USERNAME }}
+    NUGET_FEED_PRODUCTION_PAT: ${{ secrets.NUGET_API_KEY }}
+```
+
+
+# IMPORTANT!
+
+## Security
+
+- **Environment Variables**: Never hardcode credentials in scripts
+- **Secure Storage**: Use secure storage for sensitive information
+- **Access Control**: Limit access to production feeds
+- **Audit Logging**: Log all package publishing activities
+
+## Package Management
+
+- **Versioning**: Use semantic versioning for all packages
+- **Metadata**: Ensure all packages have proper metadata
+- **Testing**: Test packages before publishing
+
+## Workflow Integration
+
+- **Pre-Publishing**: Always run tests before packaging
+- **Validation**: Validate packages before publishing
+- **Documentation**: Document package usage and requirements
+- **Release Notes**: Include release notes with packages

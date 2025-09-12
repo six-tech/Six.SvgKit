@@ -1,0 +1,72 @@
+---
+title: Powerful .NET solution template for your projects
+description: A production-ready solution template that provides a complete foundation for building .NET libraries and applications
+head:
+  - tag: title
+editUrl: false
+template: splash
+---
+
+import {Card, CardGrid} from '@astrojs/starlight/components'
+import {ContainerSection, HeroX} from '@six-tech/starlight-theme-six/components'
+import heroImage from '../../assets/hero-banner-blank.png'
+
+<HeroX
+    height="400px"
+    mt="2rem"
+    mb="0"
+    px="4rem"
+    radius="1.5rem"
+    image={{
+        background: heroImage,
+        alt: "Hero background image",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        contentPosition: "bottom-left"
+    }}
+    actions={[
+        {
+            text: "Get Started",
+            link: "/Six.SolutionTemplate/introduction/"
+        }
+    ]}
+/>
+
+<ContainerSection>
+    <CardGrid>
+        <Card title="Simple but Powerful" icon="rocket">
+            Complete .NET development foundation with standardized project structure, automated scripts, and
+            professional tooling for building high-quality libraries and applications.
+        </Card>
+
+        <Card title="Standardized Development" icon="setting">
+            Consistent project structure, coding standards, and automated workflows ensure high-quality,
+            maintainable code across all projects.
+        </Card>
+
+        <Card title="Easy Testing" icon="approve-check-circle">
+            Automated testing with C# scripts for running tests, collecting coverage, and generating detailed reports.
+            Integrated with GitHub Actions for CI/CD pipelines.
+        </Card>
+    
+        <Card title="NuGet Packaging & Publishing" icon="pencil">
+            Automated NuGet package creation and publishing to multiple feeds (local, dev, staging, production) with
+            GitVersion integration and symbol package support.
+        </Card>    
+    
+        <Card title="Documentation Website" icon="external">
+            Built with Astro.js Starlight framework for modern, fast, and SEO-optimized documentation sites with
+            professional theming and deployment to GitHub Pages.
+        </Card>
+
+        <Card title="AI-Powered Integration" icon="star">
+            Pre-configured **Cursor rules and Kiro steering** files with **AGENTS.md** template provide intelligent
+            AI assistance for development and documentation tasks.
+        </Card>
+    </CardGrid>
+</ContainerSection>
+
+
+
+
