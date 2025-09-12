@@ -1,0 +1,687 @@
+---
+title: Examples
+description: Practical code examples and real-world scenarios for using Six.SvgKit to process, optimize, and convert SVG files.
+---
+
+import { Tabs, TabItem, Code } from '@astrojs/starlight/components';
+
+# Examples
+
+This section provides practical examples and real-world scenarios for using Six.SvgKit in your projects. From basic operations to advanced optimization pipelines, these examples will help you get the most out of the library.
+
+## Basic Operations
+
+### Loading and Saving SVGs
+
+<Tabs>
+  <TabItem label="From File">
+    ```csharp
+    using Six.SvgKit;
+    
+    // Load SVG from file
+    var svg = Svg.FromFile("input/icon.svg");
+    
+    // Save to new location
+    svg.ToSvgFile("output/icon.svg");
+    
+    // Get as string
+    string svgContent = svg.ToSvg();
+    
+    // Get as bytes
+    byte[] svgBytes = svg.ToBytes();
+    ```
+  </TabItem>
+  
+  <TabItem label="From String">
+    ```csharp
+    using Six.SvgKit;
+    
+    var svgString = @"<?xml version=""1.0"" encoding=""UTF-8""?>
+    <svg xmlns=""http://www.w3.org/2000/svg"" width=""100"" height=""100"" viewBox=""0 0 100 100"">
+        <circle cx=""50"" cy=""50"" r=""40"" fill=""blue"" stroke=""black"" stroke-width=""2""/>
+        <rect x=""20"" y=""70"" width=""60"" height=""20"" fill=""red""/>
+    </svg>";
+    
+    var svg = Svg.FromString(svgString);
+    svg.ToSvgFile("circle-and-rect.svg");
+    ```
+  </TabItem>
+  
+  <TabItem label="With Metadata">
+    ```csharp
+    using Six.SvgKit;
+    
+    var metadata = new SvgMetadata();
+    var svg = Svg.FromFile("icon.svg")
+        .WithMetadata(metadata);
+    
+    // Metadata is preserved when cloning
+    var clonedSvg = svg.Clone();
+    Console.WriteLine($"Metadata preserved: {clonedSvg.Metadata != null}");
+    ```
+  </TabItem>
+</Tabs>
+
+### Basic SVG Manipulation
+
+```csharp
+using Six.SvgKit;
+
+var svg = Svg.FromFile("input.svg");
+
+// Change fill color of all path elements
+var result = svg.Query()
+    .Select(node => node.Name == "path")
+    .Transform(node => node.SetAttribute("fill", "red"))
+    .Build();
+
+// Save the modified SVG
+result.ToFile("red-paths.svg");
+
+// Check what changed
+result.SizeComparisonInBytes((before, after) => 
+    Console.WriteLine($"Size changed from {before} to {after} bytes"));
+```
+
+## Simple Optimizations
+
+### Quick File Size Reduction
+
+```csharp
+using Six.SvgKit;
+using Six.SvgKit.Optimizer;
+
+var svg = Svg.FromFile("unoptimized-icon.svg");
+
+var result = svg.Query()
+    .DefaultOptimizations()
+    .Build();
+
+result.ToFile("optimized-icon.svg");
+
+// Show the improvement
+result.SizeComparisonInPercentage(percentage =>
+    Console.WriteLine($"File size reduced by {percentage:F1}%"));
+```
+
+### Remove Unnecessary Elements
+
+```csharp
+using Six.SvgKit;
+using Six.SvgKit.Optimizer;
+
+var result = Svg.FromFile("messy.svg")
+    .Query()
+    .RemoveEmptyNodes()          // Remove empty <g></g>, <defs></defs>, etc.
+    .RemoveEmptyAttributes()     // Remove fill="", stroke="", etc.
+    .RemoveEmptyText()           // Remove whitespace-only text nodes
+    .RemoveEmptyContainers()     // Remove groups with no children
+    .CollapseGroups()            // Remove unnecessary nested groups
+    .Build();
+
+result.ToFile("cleaned.svg");
+```
+
+### Compress SVG Output
+
+```csharp
+using Six.SvgKit;
+using Six.SvgKit.Optimizer;
+
+var svg = Svg.FromFile("input.svg");
+
+// Method 1: Using the extension
+var result = svg.Query()
+    .CompressOutput()
+    .Build();
+
+// Method 2: Using SVG property
+svg.CompressOutput = true;
+string compressed = svg.ToSvg();
+
+// Method 3: Remove XML declaration too
+svg.OmmitXmlDeclaration = true;
+svg.CompressOutput = true;
+string minified = svg.ToSvg();
+```
+
+## Icon Processing
+
+### Optimize Icon Sets
+
+```csharp
+using Six.SvgKit;
+using Six.SvgKit.Optimizer;
+
+public static void OptimizeIconSet(string inputDir, string outputDir)
+{
+    var iconFiles = Directory.GetFiles(inputDir, "*.svg");
+    
+    foreach (var file in iconFiles)
+    {
+        var result = Svg.FromFile(file)
+            .Query()
+            .MonoIconsOptimizations(width: 24, height: 24, decimalPlaces: 2)
+            .Build();
+        
+        var outputPath = Path.Combine(outputDir, Path.GetFileName(file));
+        result.ToFile(outputPath);
+        
+        result.SizeComparisonInPercentage(percentage =>
+            Console.WriteLine($"{Path.GetFileName(file)}: {percentage:F1}% reduction"));
+    }
+}
+
+// Usage
+OptimizeIconSet("icons/source", "icons/optimized");
+```
+
+### Convert Shapes to Paths
+
+```csharp
+using Six.SvgKit;
+using Six.SvgKit.Optimizer;
+
+// Convert circles, rectangles, and ellipses to paths
+var result = Svg.FromFile("shapes.svg")
+    .Query()
+    .ConvertShapesToPaths(precision: 2)
+    .Build();
+
+result.ToFile("paths-only.svg");
+
+// Before: <circle cx="50" cy="50" r="25"/>
+// After:  <path d="M75,50 A25,25 0 1,1 25,50 A25,25 0 1,1 75,50 Z"/>
+```
+
+### Create Consistent Icon Format
+
+```csharp
+using Six.SvgKit;
+using Six.SvgKit.Optimizer;
+
+public static void StandardizeIcon(string inputPath, string outputPath)
+{
+    var result = Svg.FromFile(inputPath)
+        .Query()
+        .ConvertShapesToPaths()
+        .MergePaths()
+        .RoundPathSegments(1)
+        .RemoveViewBoxAttribute()
+        .Select(node => node.Name == "svg")
+        .Transform(node =>
+        {
+            // Set standard icon dimensions
+            node.SetAttribute("width", "24");
+            node.SetAttribute("height", "24");
+            node.SetAttribute("fill", "none");
+        })
+        .Continue()
+        .Select(node => node.Name == "path")
+        .Transform(node =>
+        {
+            // Set standard path attributes
+            node.SetAttribute("stroke", "currentColor");
+            node.SetAttribute("stroke-width", "2");
+            node.SetAttribute("stroke-linecap", "round");
+            node.SetAttribute("stroke-linejoin", "round");
+        })
+        .Build();
+    
+    result.ToFile(outputPath);
+}
+```
+
+## Batch Processing
+
+### Parallel SVG Processing
+
+```csharp
+using Six.SvgKit;
+using Six.SvgKit.Optimizer;
+
+public static void ProcessSvgDirectory(string sourceDir, string outputDir)
+{
+    // Ensure output directory exists
+    Directory.CreateDirectory(outputDir);
+    
+    var svgFiles = Directory.GetFiles(sourceDir, "*.svg", SearchOption.AllDirectories);
+    var totalFiles = svgFiles.Length;
+    var processed = 0;
+    
+    Parallel.ForEach(svgFiles, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, file =>
+    {
+        try
+        {
+            var relativePath = Path.GetRelativePath(sourceDir, file);
+            var outputPath = Path.Combine(outputDir, relativePath);
+            
+            // Ensure output subdirectory exists
+            Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
+            
+            var result = Svg.FromFile(file)
+                .Query()
+                .DefaultOptimizations()
+                .Build();
+            
+            result.ToFile(outputPath);
+            
+            var currentProcessed = Interlocked.Increment(ref processed);
+            
+            result.SizeComparisonInPercentage(percentage =>
+                Console.WriteLine($"[{currentProcessed}/{totalFiles}] {relativePath}: {percentage:F1}% reduction"));
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error processing {file}: {ex.Message}");
+        }
+    });
+}
+```
+
+### Batch Conversion with Progress Tracking
+
+```csharp
+using Six.SvgKit;
+using Six.SvgKit.Optimizer;
+
+public class BatchProcessor
+{
+    public event Action<string, double> FileProcessed;
+    public event Action<int, int> ProgressChanged;
+    
+    public async Task ProcessDirectoryAsync(string inputDir, string outputDir)
+    {
+        var files = Directory.GetFiles(inputDir, "*.svg", SearchOption.AllDirectories);
+        var totalFiles = files.Length;
+        var completed = 0;
+        
+        var semaphore = new SemaphoreSlim(Environment.ProcessorCount);
+        var tasks = files.Select(async file =>
+        {
+            await semaphore.WaitAsync();
+            try
+            {
+                await ProcessFileAsync(file, inputDir, outputDir);
+                var current = Interlocked.Increment(ref completed);
+                ProgressChanged?.Invoke(current, totalFiles);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        });
+        
+        await Task.WhenAll(tasks);
+    }
+    
+    private async Task ProcessFileAsync(string filePath, string inputDir, string outputDir)
+    {
+        await Task.Run(() =>
+        {
+            var relativePath = Path.GetRelativePath(inputDir, filePath);
+            var outputPath = Path.Combine(outputDir, relativePath);
+            
+            Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
+            
+            var result = Svg.FromFile(filePath)
+                .Query()
+                .DefaultOptimizations()
+                .Build();
+            
+            result.ToFile(outputPath);
+            
+            result.SizeComparisonInPercentage(percentage =>
+                FileProcessed?.Invoke(relativePath, percentage));
+        });
+    }
+}
+
+// Usage
+var processor = new BatchProcessor();
+processor.FileProcessed += (file, reduction) => Console.WriteLine($"{file}: {reduction:F1}% smaller");
+processor.ProgressChanged += (current, total) => Console.WriteLine($"Progress: {current}/{total}");
+
+await processor.ProcessDirectoryAsync("input", "output");
+```
+
+## Advanced Scenarios
+
+### Custom Optimization Pipeline
+
+```csharp
+using Six.SvgKit;
+using Six.SvgKit.Optimizer;
+
+public static class CustomOptimizer
+{
+    public static SvgQueryBuilder WebOptimization(this SvgQueryBuilder builder)
+    {
+        return builder
+            .ConvertShapesToPaths(2)
+            .MergePaths()
+            .MergePathCommands()
+            .RoundPathSegments(2)
+            .RemoveEmptyNodes()
+            .RemoveEmptyAttributes()
+            .CollapseGroups()
+            .CleanupAttributes()
+            .RemoveXmlDeclaration()
+            .CompressOutput();
+    }
+    
+    public static SvgQueryBuilder PrintOptimization(this SvgQueryBuilder builder)
+    {
+        return builder
+            .ConvertShapesToPaths(3)  // Higher precision for print
+            .CleanupAttributes()
+            .RemoveEmptyNodes()
+            .RemoveEmptyAttributes();
+            // Keep formatting for print readability
+    }
+}
+
+// Usage
+var webResult = svg.Query().WebOptimization().Build();
+var printResult = svg.Query().PrintOptimization().Build();
+```
+
+### Conditional Processing
+
+```csharp
+using Six.SvgKit;
+using Six.SvgKit.Optimizer;
+
+public static SvgResult SmartOptimize(Svg svg)
+{
+    var builder = svg.Query();
+    
+    // Analyze the SVG content
+    var nodes = svg.Query().Select(_ => true).ToList();
+    var hasText = nodes.Any(n => n.Name == "text");
+    var hasGradients = nodes.Any(n => n.Name == "linearGradient" || n.Name == "radialGradient");
+    var pathCount = nodes.Count(n => n.Name == "path");
+    var shapeCount = nodes.Count(n => n.Name == "circle" || n.Name == "rect" || n.Name == "ellipse");
+    var fileSize = svg.ToSvg().Length;
+    
+    // Apply optimizations based on content analysis
+    if (fileSize < 1000)
+    {
+        // Light optimization for small files
+        builder.RemoveEmptyAttributes().CompressOutput();
+    }
+    else if (!hasText && !hasGradients && shapeCount > 0)
+    {
+        // Aggressive optimization for simple graphics
+        builder.MonoIconsOptimizations();
+    }
+    else if (pathCount > 5)
+    {
+        // Focus on path optimization
+        builder.MergePaths().MergePathCommands().RoundPathSegments(2);
+    }
+    else
+    {
+        // Standard optimization
+        builder.DefaultOptimizations();
+    }
+    
+    return builder.Build();
+}
+
+// Usage
+var result = SmartOptimize(svg);
+```
+
+### SVG Analysis and Reporting
+
+```csharp
+using Six.SvgKit;
+using Six.SvgKit.Optimizer;
+
+public class SvgAnalyzer
+{
+    public class AnalysisReport
+    {
+        public string FileName { get; set; }
+        public int OriginalSize { get; set; }
+        public int OptimizedSize { get; set; }
+        public double ReductionPercentage { get; set; }
+        public int ElementCount { get; set; }
+        public int PathCount { get; set; }
+        public bool HasText { get; set; }
+        public bool HasGradients { get; set; }
+        public List<string> ElementTypes { get; set; } = new();
+    }
+    
+    public static AnalysisReport AnalyzeAndOptimize(string filePath)
+    {
+        var svg = Svg.FromFile(filePath);
+        var nodes = svg.Query().Select(_ => true).ToList();
+        
+        var report = new AnalysisReport
+        {
+            FileName = Path.GetFileName(filePath),
+            OriginalSize = svg.ToSvg().Length,
+            ElementCount = nodes.Count,
+            PathCount = nodes.Count(n => n.Name == "path"),
+            HasText = nodes.Any(n => n.Name == "text"),
+            HasGradients = nodes.Any(n => n.Name.Contains("Gradient")),
+            ElementTypes = nodes.Select(n => n.Name).Distinct().ToList()
+        };
+        
+        var result = svg.Query()
+            .DefaultOptimizations()
+            .Build();
+        
+        result.SizeComparisonInPercentage(percentage =>
+            report.ReductionPercentage = percentage);
+        
+        report.OptimizedSize = result.ModifiedSvg.ToSvg().Length;
+        
+        return report;
+    }
+}
+
+// Usage
+var reports = Directory.GetFiles("svg-files", "*.svg")
+    .Select(SvgAnalyzer.AnalyzeAndOptimize)
+    .ToList();
+
+// Generate summary
+var avgReduction = reports.Average(r => r.ReductionPercentage);
+var totalSavings = reports.Sum(r => r.OriginalSize - r.OptimizedSize);
+var mostCommonElements = reports
+    .SelectMany(r => r.ElementTypes)
+    .GroupBy(e => e)
+    .OrderByDescending(g => g.Count())
+    .Take(5);
+
+Console.WriteLine($"Average reduction: {avgReduction:F1}%");
+Console.WriteLine($"Total bytes saved: {totalSavings:N0}");
+Console.WriteLine("Most common elements: " + string.Join(", ", mostCommonElements.Select(g => g.Key)));
+```
+
+## Format Conversion
+
+### Convert SVG to Bitmap Formats
+
+```csharp
+using Six.SvgKit;
+using ImageMagick;
+
+var svg = Svg.FromFile("icon.svg");
+
+// Convert to different formats and sizes
+svg.ToBitmapFile(MagickFormat.Png24, "icon-256.png", 256, 256);
+svg.ToBitmapFile(MagickFormat.Png24, "icon-128.png", 128, 128);
+svg.ToBitmapFile(MagickFormat.Png24, "icon-64.png", 64, 64);
+svg.ToBitmapFile(MagickFormat.Png24, "icon-32.png", 32, 32);
+
+// Convert to WebP for web use
+svg.ToBitmapFile(MagickFormat.WebP, "icon.webp", 256, 256);
+
+// Convert to JPEG (with background)
+svg.ToBitmapFile(MagickFormat.Jpeg, "icon.jpg", 256, 256);
+```
+
+### Generate Icon Set from SVG
+
+```csharp
+using Six.SvgKit;
+using Six.SvgKit.Optimizer;
+using ImageMagick;
+
+public static void GenerateIconSet(string svgPath, string outputDir)
+{
+    var svg = Svg.FromFile(svgPath)
+        .Query()
+        .MonoIconsOptimizations()
+        .Build()
+        .ModifiedSvg;
+    
+    var sizes = new[] { 16, 24, 32, 48, 64, 128, 256, 512 };
+    var formats = new[]
+    {
+        (MagickFormat.Png24, "png"),
+        (MagickFormat.WebP, "webp")
+    };
+    
+    Directory.CreateDirectory(outputDir);
+    
+    foreach (var size in sizes)
+    {
+        foreach (var (format, extension) in formats)
+        {
+            var filename = $"icon-{size}x{size}.{extension}";
+            var outputPath = Path.Combine(outputDir, filename);
+            svg.ToBitmapFile(format, outputPath, size, size);
+        }
+    }
+    
+    // Also save the optimized SVG
+    svg.ToSvgFile(Path.Combine(outputDir, "icon.svg"));
+}
+```
+
+## Integration Examples
+
+### ASP.NET Core Integration
+
+```csharp
+using Microsoft.AspNetCore.Mvc;
+using Six.SvgKit;
+using Six.SvgKit.Optimizer;
+
+[ApiController]
+[Route("api/[controller]")]
+public class SvgController : ControllerBase
+{
+    [HttpPost("optimize")]
+    public async Task<IActionResult> OptimizeSvg([FromBody] string svgContent)
+    {
+        try
+        {
+            var result = Svg.FromString(svgContent)
+                .Query()
+                .DefaultOptimizations()
+                .Build();
+            
+            var response = new
+            {
+                OriginalSize = svgContent.Length,
+                OptimizedSvg = result.ModifiedSvg.ToSvg(),
+                OptimizedSize = result.ModifiedSvg.ToSvg().Length
+            };
+            
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Error optimizing SVG: {ex.Message}");
+        }
+    }
+    
+    [HttpPost("convert")]
+    public async Task<IActionResult> ConvertToPng([FromBody] string svgContent, [FromQuery] int size = 256)
+    {
+        try
+        {
+            var svg = Svg.FromString(svgContent);
+            
+            using var memoryStream = new MemoryStream();
+            // Note: This is a simplified example. In practice, you'd need to implement
+            // the bitmap conversion to return bytes directly
+            
+            return File(memoryStream.ToArray(), "image/png", "converted.png");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Error converting SVG: {ex.Message}");
+        }
+    }
+}
+```
+
+### Build Script Integration
+
+```csharp
+using Six.SvgKit;
+using Six.SvgKit.Optimizer;
+
+// Build script for optimizing SVGs during build process
+public static class BuildSvgOptimizer
+{
+    public static void OptimizeProjectSvgs(string projectRoot)
+    {
+        var svgDirs = new[]
+        {
+            Path.Combine(projectRoot, "wwwroot", "icons"),
+            Path.Combine(projectRoot, "Assets", "Images"),
+            Path.Combine(projectRoot, "Content", "svg")
+        };
+        
+        foreach (var dir in svgDirs.Where(Directory.Exists))
+        {
+            var outputDir = Path.Combine(dir, "optimized");
+            Directory.CreateDirectory(outputDir);
+            
+            ProcessSvgDirectory(dir, outputDir);
+        }
+    }
+    
+    private static void ProcessSvgDirectory(string inputDir, string outputDir)
+    {
+        var files = Directory.GetFiles(inputDir, "*.svg", SearchOption.TopDirectoryOnly);
+        
+        Console.WriteLine($"Optimizing {files.Length} SVG files in {inputDir}");
+        
+        var totalSavings = 0;
+        
+        foreach (var file in files)
+        {
+            var result = Svg.FromFile(file)
+                .Query()
+                .DefaultOptimizations()
+                .Build();
+            
+            var outputPath = Path.Combine(outputDir, Path.GetFileName(file));
+            result.ToFile(outputPath);
+            
+            result.SizeComparisonInBytes((before, after) =>
+            {
+                var savings = before - after;
+                totalSavings += savings;
+                Console.WriteLine($"  {Path.GetFileName(file)}: {savings} bytes saved");
+            });
+        }
+        
+        Console.WriteLine($"Total savings: {totalSavings} bytes");
+    }
+}
+
+// Usage in build script
+BuildSvgOptimizer.OptimizeProjectSvgs(Environment.CurrentDirectory);
+```
+
+These examples demonstrate the versatility and power of Six.SvgKit for various SVG processing scenarios. Whether you're optimizing a single file or processing thousands of SVGs in a build pipeline, Six.SvgKit provides the tools you need to get the job done efficiently.

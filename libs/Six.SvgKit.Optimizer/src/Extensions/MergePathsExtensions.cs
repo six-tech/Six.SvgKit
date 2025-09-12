@@ -1,5 +1,4 @@
-﻿using JetBrains.Annotations;
-using Svg;
+﻿using Svg;
 using Svg.Pathing;
 
 namespace Six.SvgKit.Optimizer;

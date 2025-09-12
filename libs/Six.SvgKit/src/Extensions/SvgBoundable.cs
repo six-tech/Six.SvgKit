@@ -1,5 +1,4 @@
 ﻿using System.Drawing;
-using JetBrains.Annotations;
 using Svg;
 
 namespace Six.SvgKit;

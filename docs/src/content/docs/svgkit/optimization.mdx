@@ -1,0 +1,571 @@
+---
+title: SVG Optimization Guide
+description: Learn advanced SVG optimization techniques using Six.SvgKit.Optimizer to reduce file sizes and improve performance.
+---
+
+import { Tabs, TabItem, Card, CardGrid } from '@astrojs/starlight/components';
+
+# SVG Optimization Guide
+
+Six.SvgKit.Optimizer provides powerful tools for reducing SVG file sizes while maintaining visual quality. This guide covers optimization strategies, techniques, and best practices for different use cases.
+
+## Understanding SVG Optimization
+
+SVG optimization involves removing unnecessary elements, simplifying paths, and normalizing attributes while preserving the visual appearance and functionality of the graphic. The goal is to achieve the smallest possible file size without compromising quality.
+
+### Why Optimize SVGs?
+
+<CardGrid>
+  <Card title="Faster Loading" icon="rocket">
+    Smaller files load faster, improving user experience and Core Web Vitals scores.
+  </Card>
+  
+  <Card title="Reduced Bandwidth" icon="down-caret">
+    Lower file sizes mean less data transfer, especially important for mobile users.
+  </Card>
+  
+  <Card title="Better Performance" icon="star">
+    Optimized SVGs render faster and use less memory in browsers and applications.
+  </Card>
+  
+  <Card title="Storage Savings" icon="archive">
+    Smaller files require less storage space, reducing hosting costs and backup sizes.
+  </Card>
+</CardGrid>
+
+## Optimization Presets
+
+Six.SvgKit provides ready-made optimization presets for common scenarios.
+
+### Default Optimizations
+
+The `DefaultOptimizations()` method applies a comprehensive set of safe optimizations suitable for most SVGs:
+
+```csharp
+using Six.SvgKit;
+using Six.SvgKit.Optimizer;
+
+var result = Svg.FromFile("input.svg")
+    .Query()
+    .DefaultOptimizations()
+    .Build();
+
+// Save optimized SVG
+result.ToFile("optimized.svg");
+
+// Check the size reduction
+result.SizeComparisonInPercentage(percentage =>
+    Console.WriteLine($"Size reduced by {percentage:F1}%"));
+```
+
+**What DefaultOptimizations includes:**
+- Remove XML declaration
+- Remove empty nodes and attributes
+- Remove empty text and containers
+- Collapse unnecessary groups
+- Clean up attribute values
+- Compress output
+
+### Monochromatic Icons Optimization
+
+For icon sets and simple graphics, use `MonoIconsOptimizations()`:
+
+```csharp
+var result = Svg.FromFile("icon.svg")
+    .Query()
+    .MonoIconsOptimizations(width: 24, height: 24, decimalPlaces: 2)
+    .Build();
+```
+
+**Parameters:**
+- `width`: Target width (default: 24)
+- `height`: Target height (default: 24)  
+- `decimalPlaces`: Coordinate precision (default: 2)
+
+**Additional optimizations for icons:**
+- Convert shapes to paths
+- Merge similar paths
+- Round path coordinates
+- Remove viewBox attribute
+- Set standard fill attributes
+
+## Individual Optimization Techniques
+
+### Path Optimization
+
+#### Convert Shapes to Paths
+
+Converting basic shapes (circles, rectangles, ellipses) to paths enables further optimizations:
+
+```csharp
+svg.Query()
+    .ConvertShapesToPaths(precision: 3)
+    .Build();
+```
+
+**Before:**
+```xml
+<circle cx="50" cy="50" r="25" fill="blue"/>
+<rect x="10" y="10" width="30" height="20" fill="red"/>
+```
+
+**After:**
+```xml
+<path d="M75,50 A25,25 0 1,1 25,50 A25,25 0 1,1 75,50 Z" fill="blue"/>
+<path d="M10,10 L40,10 L40,30 L10,30 Z" fill="red"/>
+```
+
+#### Merge Paths
+
+Combine multiple paths with the same styling:
+
+```csharp
+svg.Query()
+    .MergePaths()
+    .Build();
+```
+
+**Before:**
+```xml
+<path d="M10,10 L20,10 L20,20 Z" fill="black"/>
+<path d="M30,10 L40,10 L40,20 Z" fill="black"/>
+```
+
+**After:**
+```xml
+<path d="M10,10 L20,10 L20,20 Z M30,10 L40,10 L40,20 Z" fill="black"/>
+```
+
+#### Round Path Coordinates
+
+Reduce precision to decrease file size:
+
+```csharp
+svg.Query()
+    .RoundPathSegments(decimalPlaces: 2)
+    .Build();
+```
+
+**Before:**
+```xml
+<path d="M10.123456,15.789012 L25.456789,30.123456"/>
+```
+
+**After:**
+```xml
+<path d="M10.12,15.79 L25.46,30.12"/>
+```
+
+#### Merge Path Commands
+
+Optimize path data by combining consecutive commands:
+
+```csharp
+svg.Query()
+    .MergePathCommands()
+    .Build();
+```
+
+**Before:**
+```xml
+<path d="M10,10 L20,10 L30,10 L40,10"/>
+```
+
+**After:**
+```xml
+<path d="M10,10 H40"/>
+```
+
+### Cleanup Operations
+
+#### Remove Empty Elements
+
+Clean up elements that don't contribute to the visual output:
+
+```csharp
+svg.Query()
+    .RemoveEmptyNodes()
+    .RemoveEmptyAttributes()
+    .RemoveEmptyText()
+    .RemoveEmptyContainers()
+    .Build();
+```
+
+**Examples of removed elements:**
+- `<g></g>` - Empty groups
+- `<text>   </text>` - Text with only whitespace
+- `fill=""` - Empty attributes
+- `<defs/>` - Empty definitions
+
+#### Collapse Groups
+
+Remove unnecessary grouping elements:
+
+```csharp
+svg.Query()
+    .CollapseGroups()
+    .Build();
+```
+
+**Before:**
+```xml
+<g>
+    <g>
+        <path d="M10,10 L20,20"/>
+    </g>
+</g>
+```
+
+**After:**
+```xml
+<path d="M10,10 L20,20"/>
+```
+
+#### Clean Up Attributes
+
+Normalize and optimize attribute values:
+
+```csharp
+svg.Query()
+    .CleanupAttributes()
+    .Build();
+```
+
+**Optimizations applied:**
+- Simplify colors: `rgb(255,0,0)` → `red`
+- Round numbers: `1.000` → `1`
+- Optimize transforms: `translate(0,0)` → removed
+- Clean coordinate lists: `10, 20, 30` → `10 20 30`
+
+### Output Control
+
+#### Compression
+
+Enable output compression to remove whitespace:
+
+```csharp
+svg.Query()
+    .CompressOutput()
+    .Build();
+```
+
+**Before:**
+```xml
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24">
+    <path d="M10,10 L20,20" fill="blue" />
+</svg>
+```
+
+**After:**
+```xml
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"><path d="M10,10 L20,20" fill="blue"/></svg>
+```
+
+#### Remove XML Declaration
+
+Remove the XML declaration for web use:
+
+```csharp
+svg.Query()
+    .RemoveXmlDeclaration()
+    .Build();
+```
+
+Removes: `<?xml version="1.0" encoding="UTF-8"?>`
+
+## Advanced Optimization Strategies
+
+### Custom Optimization Pipeline
+
+Create a tailored optimization pipeline for specific needs:
+
+```csharp
+public static SvgQueryBuilder WebIconOptimization(this SvgQueryBuilder builder)
+{
+    return builder
+        .ConvertShapesToPaths(2)           // Convert shapes for consistency
+        .MergePaths()                      // Combine similar paths
+        .MergePathCommands()               // Optimize path data
+        .RoundPathSegments(1)              // Aggressive rounding for web
+        .RemoveEmptyNodes()                // Clean up empty elements
+        .RemoveEmptyAttributes()           // Remove empty attributes
+        .CollapseGroups()                  // Remove unnecessary groups
+        .CleanupAttributes()               // Normalize attributes
+        .RemoveXmlDeclaration()           // Remove XML declaration
+        .RemoveViewBoxAttribute()          // Remove viewBox for icons
+        .CompressOutput();                 // Minify output
+}
+
+// Usage
+var result = svg.Query()
+    .WebIconOptimization()
+    .Build();
+```
+
+### Conditional Optimization
+
+Apply different optimizations based on content analysis:
+
+```csharp
+var builder = svg.Query();
+
+// Analyze the SVG content
+var hasText = svg.Query().Select(n => n.Name == "text").ToList().Any();
+var hasGradients = svg.Query().Select(n => n.Name == "linearGradient" || n.Name == "radialGradient").ToList().Any();
+var pathCount = svg.Query().Select(n => n.Name == "path").ToList().Count;
+
+// Apply optimizations based on content
+if (!hasText && !hasGradients)
+{
+    builder.MonoIconsOptimizations();
+}
+else if (pathCount > 10)
+{
+    builder.MergePaths().MergePathCommands();
+}
+else
+{
+    builder.DefaultOptimizations();
+}
+
+var result = builder.Build();
+```
+
+### Batch Optimization
+
+Optimize multiple files with consistent settings:
+
+```csharp
+public static void OptimizeSvgDirectory(string inputDir, string outputDir)
+{
+    var svgFiles = Directory.GetFiles(inputDir, "*.svg", SearchOption.AllDirectories);
+    
+    Parallel.ForEach(svgFiles, file =>
+    {
+        try
+        {
+            var relativePath = Path.GetRelativePath(inputDir, file);
+            var outputPath = Path.Combine(outputDir, relativePath);
+            
+            // Ensure output directory exists
+            Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
+            
+            var result = Svg.FromFile(file)
+                .Query()
+                .DefaultOptimizations()
+                .Build();
+            
+            result.ToFile(outputPath);
+            
+            // Log optimization results
+            result.SizeComparisonInPercentage(percentage =>
+                Console.WriteLine($"{relativePath}: {percentage:F1}% reduction"));
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error processing {file}: {ex.Message}");
+        }
+    });
+}
+```
+
+## Optimization Best Practices
+
+### 1. Choose the Right Preset
+
+<Tabs>
+  <TabItem label="Icons & Simple Graphics">
+    ```csharp
+    svg.Query().MonoIconsOptimizations().Build()
+    ```
+    Best for: Icons, logos, simple illustrations
+  </TabItem>
+  
+  <TabItem label="Complex Illustrations">
+    ```csharp
+    svg.Query().DefaultOptimizations().Build()
+    ```
+    Best for: Detailed illustrations, graphics with text
+  </TabItem>
+  
+  <TabItem label="Custom Needs">
+    ```csharp
+    svg.Query()
+        .ConvertShapesToPaths()
+        .MergePaths()
+        .CleanupAttributes()
+        .Build()
+    ```
+    Best for: Specific requirements or performance-critical scenarios
+  </TabItem>
+</Tabs>
+
+### 2. Test Visual Quality
+
+Always verify that optimizations don't affect visual quality:
+
+```csharp
+var result = svg.Query()
+    .DefaultOptimizations()
+    .Build();
+
+// Save both versions for comparison
+result.OriginalSvg.ToSvgFile("original.svg");
+result.ModifiedSvg.ToSvgFile("optimized.svg");
+
+// Convert to bitmap for visual comparison
+result.OriginalSvg.ToBitmapFile(MagickFormat.Png24, "original.png", 256, 256);
+result.ModifiedSvg.ToBitmapFile(MagickFormat.Png24, "optimized.png", 256, 256);
+```
+
+### 3. Monitor Performance Impact
+
+Track optimization results across your project:
+
+```csharp
+public class OptimizationMetrics
+{
+    public string FileName { get; set; }
+    public int OriginalSize { get; set; }
+    public int OptimizedSize { get; set; }
+    public double ReductionPercentage { get; set; }
+    public TimeSpan ProcessingTime { get; set; }
+}
+
+var metrics = new List<OptimizationMetrics>();
+
+foreach (var file in svgFiles)
+{
+    var stopwatch = Stopwatch.StartNew();
+    
+    var result = Svg.FromFile(file)
+        .Query()
+        .DefaultOptimizations()
+        .Build();
+    
+    stopwatch.Stop();
+    
+    var metric = new OptimizationMetrics
+    {
+        FileName = Path.GetFileName(file),
+        ProcessingTime = stopwatch.Elapsed
+    };
+    
+    result.SizeComparisonInBytes((before, after) =>
+    {
+        metric.OriginalSize = before;
+        metric.OptimizedSize = after;
+        metric.ReductionPercentage = ((double)(before - after) / before) * 100;
+    });
+    
+    metrics.Add(metric);
+}
+
+// Analyze results
+var totalReduction = metrics.Average(m => m.ReductionPercentage);
+var avgProcessingTime = metrics.Average(m => m.ProcessingTime.TotalMilliseconds);
+
+Console.WriteLine($"Average reduction: {totalReduction:F1}%");
+Console.WriteLine($"Average processing time: {avgProcessingTime:F1}ms");
+```
+
+### 4. Preserve Accessibility
+
+Ensure optimizations don't remove accessibility features:
+
+```csharp
+// Preserve important attributes for accessibility
+var result = svg.Query()
+    .SelectAttributes(
+        key => key == "aria-label" || key == "role" || key.StartsWith("aria-"),
+        (node, key, value) => { /* Keep these attributes */ })
+    .DefaultOptimizations()
+    .Build();
+```
+
+## Performance Considerations
+
+### Memory Usage
+
+For large batch operations, consider memory management:
+
+```csharp
+// Process files in chunks to manage memory
+var files = Directory.GetFiles(inputDir, "*.svg");
+var chunkSize = 100;
+
+for (int i = 0; i < files.Length; i += chunkSize)
+{
+    var chunk = files.Skip(i).Take(chunkSize);
+    
+    Parallel.ForEach(chunk, file =>
+    {
+        // Process file and dispose resources
+        using var result = ProcessSvgFile(file);
+        // Resources automatically disposed
+    });
+    
+    // Force garbage collection between chunks
+    GC.Collect();
+    GC.WaitForPendingFinalizers();
+}
+```
+
+### Processing Speed
+
+Optimize for speed when processing large numbers of files:
+
+```csharp
+// Use compiled regex for better performance
+var optimizedBuilder = svg.Query()
+    .CleanupAttributes()  // Uses compiled regex internally
+    .CompressOutput()     // Fast string operations
+    .Build();
+
+// Avoid expensive operations for simple cases
+if (svg.ToSvg().Length < 1000)
+{
+    // Use lighter optimization for small files
+    builder.RemoveEmptyAttributes().CompressOutput();
+}
+else
+{
+    // Full optimization for larger files
+    builder.DefaultOptimizations();
+}
+```
+
+## Troubleshooting
+
+### Common Issues
+
+**Over-optimization**
+- Symptom: Visual quality degraded
+- Solution: Reduce decimal place rounding, avoid aggressive path merging
+
+**Processing Errors**
+- Symptom: Exceptions during optimization
+- Solution: Validate SVG structure, handle malformed input gracefully
+
+**Unexpected Results**
+- Symptom: Optimized SVG looks different
+- Solution: Test individual optimization steps, compare before/after
+
+### Debugging Optimization
+
+```csharp
+// Step-by-step optimization with logging
+var svg = Svg.FromFile("problematic.svg");
+
+Console.WriteLine($"Original size: {svg.ToSvg().Length} characters");
+
+var step1 = svg.Query().RemoveEmptyNodes().Build();
+Console.WriteLine($"After removing empty nodes: {step1.ModifiedSvg.ToSvg().Length} characters");
+
+var step2 = step1.ModifiedSvg.Query().CleanupAttributes().Build();
+Console.WriteLine($"After cleanup: {step2.ModifiedSvg.ToSvg().Length} characters");
+
+// Continue step by step to identify issues
+```
+
+This comprehensive guide covers the major optimization techniques available in Six.SvgKit.Optimizer. For practical implementation examples, see the [Examples](/svgkit/examples) section.

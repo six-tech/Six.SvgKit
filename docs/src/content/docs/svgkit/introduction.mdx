@@ -1,0 +1,94 @@
+---
+title: Introduction to Six.SvgKit
+description: A powerful .NET library for parsing, manipulating, and optimizing SVG files with a focus on performance and accessibility.
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+# Six.SvgKit
+
+**Six.SvgKit** is a comprehensive .NET library designed for parsing, manipulating, and optimizing SVG (Scalable Vector Graphics) files. Built with performance and accessibility in mind, it provides developers with powerful tools to work with SVG content programmatically.
+
+## What is Six.SvgKit?
+
+Six.SvgKit is a modern .NET library that simplifies SVG processing tasks. Whether you need to optimize SVG files for web performance, batch process icon sets, or manipulate SVG content programmatically, Six.SvgKit provides an intuitive API with powerful optimization capabilities.
+
+## Key Features
+
+<CardGrid>
+  <Card title="SVG Parsing & Manipulation" icon="document">
+    Parse SVG files from strings or files with a fluent API. Access and modify SVG elements, attributes, and structure with ease.
+  </Card>
+  
+  <Card title="Advanced Optimization" icon="rocket">
+    Built-in optimization techniques including path merging, shape conversion, attribute cleanup, and compression for smaller file sizes.
+  </Card>
+  
+  <Card title="Batch Processing" icon="list-format">
+    Process multiple SVG files in parallel with configurable optimization presets for different use cases like monochromatic icons.
+  </Card>
+  
+  <Card title="Format Conversion" icon="picture">
+    Convert SVG files to various bitmap formats (PNG, WebP) using ImageMagick integration for versatile output options.
+  </Card>
+</CardGrid>
+
+## Why Choose Six.SvgKit?
+
+### Performance First
+- **Parallel Processing**: Batch operations run in parallel for maximum performance
+- **Memory Efficient**: Optimized for processing large numbers of SVG files
+- **Fast Parsing**: Uses AngleSharp for efficient XML/SVG parsing
+
+### Developer Experience
+- **Fluent API**: Intuitive method chaining for complex operations
+- **Type Safety**: Strongly typed API with comprehensive IntelliSense support
+- **Extensible**: Plugin architecture for custom optimization techniques
+
+### Production Ready
+- **Comprehensive Testing**: Extensive unit test coverage
+- **Error Handling**: Robust error handling with detailed diagnostics
+- **Documentation**: Complete API documentation and examples
+
+## Common Use Cases
+
+Six.SvgKit is perfect for:
+
+- **Icon Set Optimization**: Batch optimize icon collections for web applications
+- **SVG Cleanup**: Remove unnecessary elements and attributes from SVG files
+- **Format Conversion**: Convert SVG files to bitmap formats for different platforms
+- **Build Pipeline Integration**: Automate SVG processing in CI/CD workflows
+- **Web Performance**: Reduce SVG file sizes for faster page loading
+- **Accessibility**: Ensure SVG files meet accessibility standards
+
+## Library Architecture
+
+Six.SvgKit consists of two main packages:
+
+### Six.SvgKit (Core Library)
+The core library provides fundamental SVG parsing, manipulation, and serialization capabilities:
+- SVG document parsing and AST representation
+- Element and attribute manipulation
+- Query builder for complex operations
+- File I/O and format conversion
+
+### Six.SvgKit.Optimizer (Optimization Extensions)
+The optimizer package extends the core library with advanced optimization techniques:
+- Path optimization and merging
+- Shape-to-path conversion
+- Attribute cleanup and compression
+- Predefined optimization presets
+
+## Getting Started
+
+Ready to start using Six.SvgKit? Head over to our [Getting Started](/svgkit/getting-started) guide to learn how to install and use the library in your .NET projects.
+
+For detailed examples and advanced usage patterns, check out our [Examples](/svgkit/examples) section.
+
+## Community and Support
+
+Six.SvgKit is an open-source project developed by Six Technology. We welcome contributions, bug reports, and feature requests through our GitHub repository.
+
+- **GitHub Repository**: [six-tech/Six.SvgKit](https://github.com/six-tech/Six.SvgKit)
+- **Documentation**: [six-tech.github.io/Six.SvgKit](https://six-tech.github.io/Six.SvgKit)
+- **License**: MIT License

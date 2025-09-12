@@ -1,6 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 using AngleSharp.Dom;
-using JetBrains.Annotations;
 
 namespace Six.SvgKit;
 

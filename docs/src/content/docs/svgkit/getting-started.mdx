@@ -1,0 +1,211 @@
+---
+title: Getting Started with Six.SvgKit
+description: Learn how to install and start using Six.SvgKit in your .NET projects with step-by-step instructions and basic examples.
+---
+
+import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
+
+# Getting Started
+
+This guide will help you get up and running with Six.SvgKit in your .NET projects. Whether you're building a web application, desktop app, or console utility, Six.SvgKit provides the tools you need to work with SVG files effectively.
+
+## Prerequisites
+
+Before you begin, ensure you have:
+
+- **.NET 9.0 or later**: Six.SvgKit targets .NET 9.0 for optimal performance
+- **Visual Studio 2022** or **JetBrains Rider** (recommended IDEs)
+- **Basic C# knowledge**: Familiarity with C# and .NET development
+
+## Installation
+
+Six.SvgKit is distributed as two NuGet packages. Install the packages that match your needs:
+
+### Core Library Only
+
+If you only need basic SVG parsing and manipulation:
+
+<Tabs>
+  <TabItem label="Package Manager">
+    ```powershell
+    Install-Package Six.SvgKit
+    ```
+  </TabItem>
+  <TabItem label="dotnet CLI">
+    ```bash
+    dotnet add package Six.SvgKit
+    ```
+  </TabItem>
+  <TabItem label="PackageReference">
+    ```xml
+    <PackageReference Include="Six.SvgKit" Version="1.0.0" />
+    ```
+  </TabItem>
+</Tabs>
+
+### With Optimization Extensions
+
+For advanced optimization features (recommended):
+
+<Tabs>
+  <TabItem label="Package Manager">
+    ```powershell
+    Install-Package Six.SvgKit
+    Install-Package Six.SvgKit.Optimizer
+    ```
+  </TabItem>
+  <TabItem label="dotnet CLI">
+    ```bash
+    dotnet add package Six.SvgKit
+    dotnet add package Six.SvgKit.Optimizer
+    ```
+  </TabItem>
+  <TabItem label="PackageReference">
+    ```xml
+    <PackageReference Include="Six.SvgKit" Version="1.0.0" />
+    <PackageReference Include="Six.SvgKit.Optimizer" Version="1.0.0" />
+    ```
+  </TabItem>
+</Tabs>
+
+## Quick Start
+
+Let's start with a simple example that demonstrates the basic workflow of Six.SvgKit:
+
+### 1. Import Namespaces
+
+```csharp
+using Six.SvgKit;
+using Six.SvgKit.Optimizer; // If using optimization features
+```
+
+### 2. Load an SVG
+
+You can load SVG content from a file or string:
+
+```csharp
+// From file
+var svg = Svg.FromFile("path/to/your/icon.svg");
+
+// From string
+var svgString = @"<svg xmlns=""http://www.w3.org/2000/svg"" width=""24"" height=""24"">
+    <circle cx=""12"" cy=""12"" r=""10"" fill=""blue"" />
+</svg>";
+var svg = Svg.FromString(svgString);
+```
+
+### 3. Basic Operations
+
+```csharp
+// Get the SVG as a string
+string svgOutput = svg.ToSvg();
+
+// Save to file
+svg.ToSvgFile("output.svg");
+
+// Convert to byte array
+byte[] svgBytes = svg.ToBytes();
+```
+
+### 4. Apply Optimizations
+
+```csharp
+// Apply basic optimizations
+var optimizedSvg = svg
+    .Query()
+    .DefaultOptimizations() // Requires Six.SvgKit.Optimizer
+    .Build();
+
+// Get the optimized SVG
+string optimizedOutput = optimizedSvg.ModifiedSvg.ToSvg();
+```
+
+## Core Concepts
+
+Understanding these key concepts will help you work effectively with Six.SvgKit:
+
+<CardGrid>
+  <Card title="Svg Class" icon="document">
+    The main entry point for working with SVG documents. Provides methods to load, manipulate, and save SVG content.
+  </Card>
+  
+  <Card title="SvgQueryBuilder" icon="magnifier">
+    A fluent API for querying and transforming SVG elements. Supports method chaining for complex operations.
+  </Card>
+  
+  <Card title="SvgNode" icon="puzzle">
+    Represents individual elements in the SVG document tree. Provides access to attributes, children, and content.
+  </Card>
+  
+  <Card title="SvgResult" icon="star">
+    Contains the results of optimization operations, including the modified SVG and comparison metrics.
+  </Card>
+</CardGrid>
+
+## Configuration Options
+
+Six.SvgKit provides several configuration options to customize its behavior:
+
+### Output Compression
+
+Control how SVG output is formatted:
+
+```csharp
+var svg = Svg.FromFile("input.svg");
+
+// Enable compression (removes whitespace)
+svg.CompressOutput = true;
+
+// Disable XML declaration
+svg.OmmitXmlDeclaration = true;
+
+string compressedSvg = svg.ToSvg();
+```
+
+### Metadata Tracking
+
+Add metadata to track SVG instances during batch processing:
+
+```csharp
+var metadata = new SvgMetadata { /* your metadata */ };
+var svg = Svg.FromFile("input.svg")
+    .WithMetadata(metadata);
+```
+
+## Next Steps
+
+Now that you have Six.SvgKit installed and understand the basics, explore these topics:
+
+- **[API Reference](/svgkit/api-reference)**: Detailed documentation of all classes and methods
+- **[Optimization Guide](/svgkit/optimization)**: Learn about advanced optimization techniques
+- **[Examples](/svgkit/examples)**: Practical examples for common scenarios
+- **[Best Practices](/svgkit/best-practices)**: Tips for optimal performance and results
+
+## Troubleshooting
+
+### Common Issues
+
+**Package Not Found**
+- Ensure you're using the correct package source
+- Check that your project targets .NET 9.0 or later
+
+**SVG Parsing Errors**
+- Verify your SVG content is well-formed XML
+- Check for unsupported SVG features or elements
+
+**Performance Issues**
+- Use parallel processing for batch operations
+- Consider using optimization presets for common scenarios
+
+### Getting Help
+
+If you encounter issues or have questions:
+
+1. Check the [Examples](/svgkit/examples) for similar use cases
+2. Review the [API Reference](/svgkit/api-reference) for detailed method documentation
+3. Search existing issues on [GitHub](https://github.com/six-tech/Six.SvgKit/issues)
+4. Create a new issue with a minimal reproduction case
+
+## What's Next?
+
+Ready to dive deeper? Check out our comprehensive [API Reference](/svgkit/api-reference) to learn about all the available methods and classes, or jump straight to the [Examples](/svgkit/examples) to see Six.SvgKit in action.

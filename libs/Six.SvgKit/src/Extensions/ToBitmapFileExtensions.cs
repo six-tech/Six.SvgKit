@@ -1,7 +1,6 @@
 ﻿using System.Drawing;
 using System.Drawing.Drawing2D;
 using ImageMagick;
-using JetBrains.Annotations;
 using Svg;
 
 namespace Six.SvgKit;

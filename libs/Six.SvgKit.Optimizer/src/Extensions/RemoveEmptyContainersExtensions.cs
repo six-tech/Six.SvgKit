@@ -1,6 +1,4 @@
-﻿using JetBrains.Annotations;
-
-namespace Six.SvgKit.Optimizer;
+﻿namespace Six.SvgKit.Optimizer;
 
 [PublicAPI]
 public static class RemoveEmptyContainersExtensions

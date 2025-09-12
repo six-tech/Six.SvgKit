@@ -1,5 +1,6 @@
 ﻿namespace Six.SvgKit.Optimizer;
 
+[PublicAPI]
 public static class RemoveAllAttributesExtensions
 {
   public static SvgQueryBuilder RemoveAllAttributes(this SvgQueryBuilder builder)

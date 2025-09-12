@@ -42,7 +42,17 @@ export default defineConfig({
             ],
             sidebar: [
                 {
-                    label: 'Getting Started',
+                    label: 'SVGKit Library',
+                    items: [
+                        {label: 'Introduction', slug: 'svgkit/introduction'},
+                        {label: 'Getting Started', slug: 'svgkit/getting-started'},
+                        {label: 'API Reference', slug: 'svgkit/api-reference'},
+                        {label: 'Optimization Guide', slug: 'svgkit/optimization'},
+                        {label: 'Examples', slug: 'svgkit/examples'}
+                    ],
+                },
+                {
+                    label: 'Template Guide',
                     items: [
                         {label: 'Introduction', slug: 'six/introduction'},
                         {label: 'Setup and Configuration', slug: 'six/setup-and-configuration'}                        

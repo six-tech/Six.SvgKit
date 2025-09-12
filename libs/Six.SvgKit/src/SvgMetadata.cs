@@ -1,5 +1,7 @@
 ﻿namespace Six.SvgKit;
 
+[PublicAPI]
+[ExcludeFromCodeCoverage]
 public record SvgMetadata
 {
   public string Id { get; init; } = string.Empty;

@@ -1,7 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using JetBrains.Annotations;
-
-namespace Six.SvgKit;
+﻿namespace Six.SvgKit;
 
 class CaseInsensitiveStringComparer : IEqualityComparer<string>
 {

@@ -1,6 +1,4 @@
-﻿using JetBrains.Annotations;
-
-namespace Six.SvgKit;
+﻿namespace Six.SvgKit;
 
 /// <summary>
 /// Provides functionality to build and manipulate SVG documents.

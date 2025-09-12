@@ -1,0 +1,690 @@
+---
+title: API Reference
+description: Complete API reference for Six.SvgKit classes, methods, and extension methods with code examples and usage patterns.
+---
+
+import { Tabs, TabItem, Code } from '@astrojs/starlight/components';
+
+# API Reference
+
+This comprehensive reference covers all public classes, methods, and extension methods available in Six.SvgKit and Six.SvgKit.Optimizer packages.
+
+## Core Classes
+
+### Svg Class
+
+The main entry point for working with SVG documents. Provides static factory methods and instance methods for manipulation.
+
+#### Static Factory Methods
+
+##### `Svg.FromFile(string path)`
+
+Creates a new `Svg` instance from a file.
+
+```csharp
+// Load SVG from file
+var svg = Svg.FromFile("path/to/icon.svg");
+```
+
+**Parameters:**
+- `path` (string): The path to the SVG file
+
+**Returns:** `Svg` - A new SVG instance
+
+**Throws:** `FileNotFoundException` if the file doesn't exist
+
+##### `Svg.FromString(string svgString)`
+
+Creates a new `Svg` instance from an SVG string.
+
+```csharp
+// Load SVG from string
+var svgString = @"<svg xmlns=""http://www.w3.org/2000/svg"" width=""24"" height=""24"">
+    <circle cx=""12"" cy=""12"" r=""10"" fill=""blue"" />
+</svg>";
+var svg = Svg.FromString(svgString);
+```
+
+**Parameters:**
+- `svgString` (string): The SVG content as a string
+
+**Returns:** `Svg` - A new SVG instance
+
+#### Instance Properties
+
+##### `Metadata`
+
+Gets or sets the SVG metadata for identification during batch processing.
+
+```csharp
+var metadata = new SvgMetadata();
+svg.Metadata = metadata;
+```
+
+**Type:** `SvgMetadata?`
+
+##### `OmmitXmlDeclaration`
+
+Controls whether to remove the XML declaration from output.
+
+```csharp
+svg.OmmitXmlDeclaration = true; // Removes <?xml version="1.0"?>
+```
+
+**Type:** `bool`
+
+##### `CompressOutput`
+
+Controls whether to compress the SVG output by removing whitespace.
+
+```csharp
+svg.CompressOutput = true; // Minifies output
+```
+
+**Type:** `bool`
+
+#### Instance Methods
+
+##### `WithMetadata(SvgMetadata metadata)`
+
+Sets metadata and returns the current instance for method chaining.
+
+```csharp
+var svg = Svg.FromFile("icon.svg")
+    .WithMetadata(new SvgMetadata());
+```
+
+**Parameters:**
+- `metadata` (SvgMetadata): The metadata to associate with this SVG
+
+**Returns:** `Svg` - The current instance
+
+##### `Query()`
+
+Creates a new `SvgQueryBuilder` for querying and manipulating the SVG.
+
+```csharp
+var result = svg.Query()
+    .Select(n => n.Name == "circle")
+    .Transform(n => n.SetAttribute("fill", "red"))
+    .Build();
+```
+
+**Returns:** `SvgQueryBuilder` - A new query builder instance
+
+##### `Clone()`
+
+Creates a deep copy of the current SVG instance.
+
+```csharp
+var clonedSvg = svg.Clone();
+```
+
+**Returns:** `Svg` - A new SVG instance with the same content
+
+##### `ToSvg(Formatting formatting = Formatting.Indented)`
+
+Converts the SVG to its string representation.
+
+```csharp
+string svgString = svg.ToSvg();
+string minifiedSvg = svg.ToSvg(Formatting.None);
+```
+
+**Parameters:**
+- `formatting` (Formatting): XML formatting options
+
+**Returns:** `string` - The SVG as a string
+
+##### `ToBytes()`
+
+Converts the SVG to a UTF-8 byte array.
+
+```csharp
+byte[] svgBytes = svg.ToBytes();
+```
+
+**Returns:** `byte[]` - The SVG as a byte array
+
+##### `ToSvgFile(string path)`
+
+Saves the SVG to a file.
+
+```csharp
+svg.ToSvgFile("output/optimized-icon.svg");
+```
+
+**Parameters:**
+- `path` (string): The output file path
+
+### SvgQueryBuilder Class
+
+A fluent API for querying and transforming SVG elements with method chaining support.
+
+#### Selection Methods
+
+##### `Select(Func<SvgNode, bool> predicate)`
+
+Selects nodes that match the specified predicate.
+
+```csharp
+var builder = svg.Query()
+    .Select(n => n.Name == "path")
+    .Select(n => n.Attributes.ContainsKey("fill"));
+```
+
+**Parameters:**
+- `predicate` (Func<SvgNode, bool>): Function to test each node
+
+**Returns:** `SvgQueryBuilder` - The current builder instance
+
+##### `SelectAttributes(Func<string, bool> keyPredicate, Action<SvgNode, string, string> action)`
+
+Selects and processes attributes matching the key predicate.
+
+```csharp
+builder.SelectAttributes(
+    key => key.StartsWith("data-"),
+    (node, key, value) => node.RemoveAttribute(key)
+);
+```
+
+**Parameters:**
+- `keyPredicate` (Func<string, bool>): Function to test attribute keys
+- `action` (Action<SvgNode, string, string>): Action to perform on matching attributes
+
+**Returns:** `SvgQueryBuilder` - The current builder instance
+
+#### Transformation Methods
+
+##### `Transform(Action<SvgNode> action)`
+
+Applies a transformation to selected nodes.
+
+```csharp
+builder.Select(n => n.Name == "rect")
+    .Transform(n => {
+        n.SetAttribute("rx", "5");
+        n.SetAttribute("ry", "5");
+    });
+```
+
+**Parameters:**
+- `action` (Action<SvgNode>): Transformation to apply to each selected node
+
+**Returns:** `SvgQueryBuilder` - The current builder instance
+
+##### `Continue()`
+
+Continues the query chain, typically used after operations that modify the document structure.
+
+```csharp
+var result = svg.Query()
+    .RemoveEmptyNodes()
+    .Continue()
+    .Select(n => n.Name == "g")
+    .Build();
+```
+
+**Returns:** `SvgQueryBuilder` - The current builder instance
+
+#### Execution Methods
+
+##### `Build()`
+
+Executes the query and returns the results.
+
+```csharp
+var result = svg.Query()
+    .Select(n => n.Name == "path")
+    .Transform(n => n.SetAttribute("stroke-width", "2"))
+    .Build();
+```
+
+**Returns:** `SvgResult` - The query execution results
+
+### SvgNode Class
+
+Represents a node in the SVG document tree with properties and methods for manipulation.
+
+#### Properties
+
+##### `Guid`
+
+Gets the unique identifier of the SVG node.
+
+```csharp
+Guid nodeId = node.Guid;
+```
+
+**Type:** `Guid`
+
+##### `Svg`
+
+Gets the owner SVG document.
+
+```csharp
+Svg ownerSvg = node.Svg;
+```
+
+**Type:** `Svg`
+
+##### `Parent`
+
+Gets the parent node, or null if this is the root.
+
+```csharp
+SvgNode? parentNode = node.Parent;
+```
+
+**Type:** `SvgNode?`
+
+##### `Children`
+
+Gets the list of child nodes.
+
+```csharp
+List<SvgNode> childNodes = node.Children;
+```
+
+**Type:** `List<SvgNode>`
+
+##### `Name`
+
+Gets the element name (e.g., "svg", "path", "circle").
+
+```csharp
+string elementName = node.Name;
+```
+
+**Type:** `string`
+
+##### `Attributes`
+
+Gets the attribute dictionary for this node.
+
+```csharp
+var fillColor = node.Attributes["fill"];
+node.Attributes["stroke"] = "black";
+```
+
+**Type:** `AttributeDictionary`
+
+##### `TextContent`
+
+Gets the text content of this node.
+
+```csharp
+string text = node.TextContent;
+```
+
+**Type:** `string?`
+
+##### `IsRoot`
+
+Determines if this is the root SVG element.
+
+```csharp
+bool isRoot = node.IsRoot;
+```
+
+**Type:** `bool`
+
+##### `IsContainer`
+
+Determines if this node can contain other nodes.
+
+```csharp
+bool canContainChildren = node.IsContainer;
+```
+
+**Type:** `bool`
+
+#### Methods
+
+##### `SetAttribute(string key, string value)`
+
+Sets an attribute value.
+
+```csharp
+node.SetAttribute("fill", "red");
+node.SetAttribute("stroke-width", "2");
+```
+
+**Parameters:**
+- `key` (string): The attribute name
+- `value` (string): The attribute value
+
+##### `RemoveAttribute(string key)`
+
+Removes an attribute.
+
+```csharp
+node.RemoveAttribute("fill");
+```
+
+**Parameters:**
+- `key` (string): The attribute name to remove
+
+##### `Remove()`
+
+Removes this node from its parent.
+
+```csharp
+node.Remove();
+```
+
+### SvgResult Class
+
+Contains the results of SVG query operations and optimization metrics.
+
+#### Properties
+
+##### `OriginalSvg`
+
+Gets the original SVG before modifications.
+
+```csharp
+Svg original = result.OriginalSvg;
+```
+
+**Type:** `Svg`
+
+##### `ModifiedSvg`
+
+Gets the modified SVG after operations.
+
+```csharp
+Svg modified = result.ModifiedSvg;
+string optimizedSvg = result.ModifiedSvg.ToSvg();
+```
+
+**Type:** `Svg`
+
+#### Methods
+
+##### `SizeComparisonInBytes(Action<int, int> callback)`
+
+Compares file sizes in bytes and executes a callback.
+
+```csharp
+result.SizeComparisonInBytes((before, after) => {
+    Console.WriteLine($"Size reduced from {before} to {after} bytes");
+});
+```
+
+**Parameters:**
+- `callback` (Action<int, int>): Callback with original and modified sizes
+
+**Returns:** `SvgResult` - The current result instance
+
+##### `SizeComparisonInPercentage(Action<double> callback)`
+
+Calculates size reduction percentage and executes a callback.
+
+```csharp
+result.SizeComparisonInPercentage(percentage => {
+    Console.WriteLine($"Size reduced by {percentage:F1}%");
+});
+```
+
+**Parameters:**
+- `callback` (Action<double>): Callback with the reduction percentage
+
+**Returns:** `SvgResult` - The current result instance
+
+##### `ToFile(string path)`
+
+Saves the modified SVG to a file.
+
+```csharp
+result.ToFile("optimized-output.svg");
+```
+
+**Parameters:**
+- `path` (string): The output file path
+
+## Extension Methods (Six.SvgKit.Optimizer)
+
+The optimizer package provides numerous extension methods for the `SvgQueryBuilder` class.
+
+### Preset Optimizations
+
+##### `DefaultOptimizations()`
+
+Applies a comprehensive set of standard optimizations.
+
+```csharp
+var result = svg.Query()
+    .DefaultOptimizations()
+    .Build();
+```
+
+**Operations performed:**
+- Remove XML declaration
+- Remove empty nodes, attributes, and text
+- Remove empty containers
+- Collapse unnecessary groups
+- Clean up attributes
+- Compress output
+
+##### `MonoIconsOptimizations(int width = 24, int height = 24, int decimalPlaces = 2)`
+
+Optimizes monochromatic icon sets with specific parameters.
+
+```csharp
+var result = svg.Query()
+    .MonoIconsOptimizations(width: 32, height: 32, decimalPlaces: 1)
+    .Build();
+```
+
+**Parameters:**
+- `width` (int): Target width for the SVG
+- `height` (int): Target height for the SVG  
+- `decimalPlaces` (int): Decimal precision for path coordinates
+
+**Operations performed:**
+- Convert shapes to paths
+- Merge paths with similar styles
+- Round path segments to specified precision
+- Apply default optimizations
+- Set standard icon attributes
+
+### Shape and Path Operations
+
+##### `ConvertShapesToPaths(int precision = 3)`
+
+Converts circles, ellipses, and rectangles to path elements.
+
+```csharp
+builder.ConvertShapesToPaths(precision: 2);
+```
+
+**Parameters:**
+- `precision` (int): Decimal places for coordinate precision
+
+##### `MergePaths()`
+
+Merges multiple path elements with the same style properties.
+
+```csharp
+builder.MergePaths();
+```
+
+##### `MergePathCommands()`
+
+Optimizes path data by merging consecutive commands of the same type.
+
+```csharp
+builder.MergePathCommands();
+```
+
+##### `RoundPathSegments(int decimalPlaces = 2)`
+
+Rounds path coordinates to reduce file size.
+
+```csharp
+builder.RoundPathSegments(decimalPlaces: 1);
+```
+
+**Parameters:**
+- `decimalPlaces` (int): Number of decimal places to preserve
+
+### Cleanup Operations
+
+##### `RemoveEmptyNodes()`
+
+Removes nodes that have no content or useful attributes.
+
+```csharp
+builder.RemoveEmptyNodes();
+```
+
+##### `RemoveEmptyAttributes()`
+
+Removes attributes with empty or whitespace-only values.
+
+```csharp
+builder.RemoveEmptyAttributes();
+```
+
+##### `RemoveEmptyText()`
+
+Removes text nodes that contain only whitespace.
+
+```csharp
+builder.RemoveEmptyText();
+```
+
+##### `RemoveEmptyContainers()`
+
+Removes container elements (like groups) that have no children.
+
+```csharp
+builder.RemoveEmptyContainers();
+```
+
+##### `CollapseGroups()`
+
+Removes unnecessary group elements that don't add semantic value.
+
+```csharp
+builder.CollapseGroups();
+```
+
+##### `CleanupAttributes()`
+
+Normalizes and optimizes attribute values (colors, numbers, transforms).
+
+```csharp
+builder.CleanupAttributes();
+```
+
+### Output Control
+
+##### `RemoveXmlDeclaration()`
+
+Removes the XML declaration from the output.
+
+```csharp
+builder.RemoveXmlDeclaration();
+```
+
+##### `RemoveViewBoxAttribute()`
+
+Removes the viewBox attribute from the root SVG element.
+
+```csharp
+builder.RemoveViewBoxAttribute();
+```
+
+##### `CompressOutput()`
+
+Enables output compression to remove unnecessary whitespace.
+
+```csharp
+builder.CompressOutput();
+```
+
+## Format Conversion Extensions
+
+### Bitmap Conversion
+
+##### `ToBitmapFile(MagickFormat format, string path, int width, int height)`
+
+Converts SVG to various bitmap formats using ImageMagick.
+
+```csharp
+svg.ToBitmapFile(MagickFormat.Png24, "icon.png", 256, 256);
+svg.ToBitmapFile(MagickFormat.WebP, "icon.webp", 128, 128);
+```
+
+**Parameters:**
+- `format` (MagickFormat): Target bitmap format
+- `path` (string): Output file path
+- `width` (int): Output width in pixels
+- `height` (int): Output height in pixels
+
+**Supported formats:** PNG, WebP, JPEG, BMP, TIFF, and more
+
+## Usage Patterns
+
+### Chaining Operations
+
+Six.SvgKit is designed for method chaining to create readable optimization pipelines:
+
+```csharp
+var result = Svg.FromFile("input.svg")
+    .Query()
+    .ConvertShapesToPaths()
+    .MergePaths()
+    .RoundPathSegments(2)
+    .RemoveEmptyNodes()
+    .CleanupAttributes()
+    .CompressOutput()
+    .Build()
+    .SizeComparisonInPercentage(p => Console.WriteLine($"Reduced by {p:F1}%"));
+
+result.ToFile("output.svg");
+```
+
+### Conditional Operations
+
+Apply operations based on conditions:
+
+```csharp
+var builder = svg.Query();
+
+if (optimizeForWeb)
+{
+    builder.DefaultOptimizations();
+}
+
+if (targetFormat == "icon")
+{
+    builder.MonoIconsOptimizations();
+}
+
+var result = builder.Build();
+```
+
+### Batch Processing
+
+Process multiple files efficiently:
+
+```csharp
+var files = Directory.GetFiles("input", "*.svg");
+
+Parallel.ForEach(files, file =>
+{
+    var result = Svg.FromFile(file)
+        .Query()
+        .DefaultOptimizations()
+        .Build();
+    
+    var outputPath = Path.Combine("output", Path.GetFileName(file));
+    result.ToFile(outputPath);
+});
+```
+
+This completes the comprehensive API reference for Six.SvgKit. For practical examples and common scenarios, see the [Examples](/svgkit/examples) section.

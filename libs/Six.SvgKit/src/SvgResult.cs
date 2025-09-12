@@ -1,7 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Runtime.CompilerServices;
-using System.Xml.Linq;
-using JetBrains.Annotations;
+﻿using System.Runtime.CompilerServices;
 
 namespace Six.SvgKit;
 

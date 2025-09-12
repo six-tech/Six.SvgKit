@@ -1,13 +1,17 @@
 <!-- Directory.Build.props for tests -->
 <Project>
-    <!-- Import parent Directory.Build.props -->
-    <Import Project="$(MSBuildThisFileDirectory)../Directory.Build.props"
-            Condition="Exists('$(MSBuildThisFileDirectory)../Directory.Build.props')" />
 
-    <!-- Only apply test configuration to actual test projects, not Aspire AppHost -->
-    <PropertyGroup Condition="'$(IsAspireHost)' != 'true'">
+    <PropertyGroup>
+        <LangVersion>13</LangVersion>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+
         <TargetFramework>net9.0</TargetFramework>
         <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+    <!-- Only apply test configuration to actual test projects, not Aspire AppHost -->
+    <PropertyGroup Condition="'$(IsAspireHost)' != 'true'">        
         <IsTestProject>true</IsTestProject>
 
         <!-- Coverlet Collector Configuration -->

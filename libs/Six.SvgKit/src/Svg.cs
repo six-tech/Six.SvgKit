@@ -1,9 +1,7 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Text;
+﻿using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using AngleSharp.Html;
-using JetBrains.Annotations;
 
 namespace Six.SvgKit;
 

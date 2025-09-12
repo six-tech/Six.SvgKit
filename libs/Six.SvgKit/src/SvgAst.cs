@@ -1,6 +1,5 @@
 ﻿using AngleSharp;
 using AngleSharp.Dom;
-using JetBrains.Annotations;
 
 namespace Six.SvgKit;
 
@@ -56,7 +55,7 @@ public class SvgAst
   /// <param name="svg">The SVG object.</param>
   /// <param name="element">The root XElement of the SVG document.</param>
   /// <returns>The root node of the SVG AST.</returns>
-  SvgNode BuildAst(Svg svg, IElement element)
+  static SvgNode BuildAst(Svg svg, IElement element)
   {
     var node = new SvgNode(svg, element.TagName.ToLowerInvariant());
 

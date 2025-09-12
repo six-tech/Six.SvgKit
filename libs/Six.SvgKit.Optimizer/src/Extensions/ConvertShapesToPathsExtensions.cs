@@ -2,7 +2,6 @@
 using System.Drawing.Drawing2D;
 using System.Globalization;
 using System.Runtime.CompilerServices;
-using JetBrains.Annotations;
 using Svg;
 using Svg.Pathing;
 using Svg.Transforms;

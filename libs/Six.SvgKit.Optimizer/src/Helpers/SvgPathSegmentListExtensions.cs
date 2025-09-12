@@ -3,6 +3,7 @@ using System.Text;
 
 namespace Six.SvgKit.Optimizer;
 
+[PublicAPI]
 public static class SvgPathSegmentListExtensions
 {
   /// <summary>
