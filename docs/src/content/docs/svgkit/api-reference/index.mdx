@@ -1,0 +1,122 @@
+---
+title: API Reference
+description: Complete API reference for Six.SvgKit classes, methods, and extension methods with code examples and usage patterns.
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+# Overview
+
+This comprehensive reference covers all public classes, methods, and extension methods available in Six.SvgKit and Six.SvgKit.Optimizer packages.
+
+# Core Classes
+
+Six.SvgKit provides several core classes that work together to provide SVG parsing, manipulation, and optimization capabilities.
+
+<CardGrid>
+  <Card title="Svg Class" icon="document">
+    The main entry point for working with SVG documents. Provides static factory methods and instance methods for manipulation.
+    
+    [View Svg Class →](/Six.SvgKit/svgkit/api-reference/svg-class)
+  </Card>
+  
+  <Card title="SvgQueryBuilder Class" icon="magnifier">
+    A fluent API for querying and transforming SVG elements. Supports method chaining for complex operations.
+    
+    [View SvgQueryBuilder Class →](/Six.SvgKit/svgkit/api-reference/svg-query-builder)
+  </Card>
+  
+  <Card title="SvgNode Class" icon="puzzle">
+    Represents individual elements in the SVG document tree. Provides access to attributes, children, and content.
+    
+    [View SvgNode Class →](/Six.SvgKit/svgkit/api-reference/svg-node)
+  </Card>
+  
+  <Card title="SvgResult Class" icon="star">
+    Contains the results of optimization operations, including the modified SVG and comparison metrics.
+    
+    [View SvgResult Class →](/Six.SvgKit/svgkit/api-reference/svg-result)
+  </Card>
+</CardGrid>
+
+# Extension Methods
+
+The Six.SvgKit.Optimizer package provides numerous extension methods that add powerful optimization capabilities to the core library.
+
+<CardGrid>
+  <Card title="Optimization Extensions" icon="rocket">
+    Comprehensive collection of SVG optimization methods including presets, path optimization, cleanup operations, and output control.
+    
+    [View Extension Methods →](/Six.SvgKit/svgkit/api-reference/extension-methods)
+  </Card>
+  
+  <Card title="Format Conversion" icon="seti:image">
+    Extensions for converting SVG files to various bitmap formats using ImageMagick integration.
+    
+    [View Format Conversion →](/Six.SvgKit/svgkit/api-reference/format-conversion)
+  </Card>
+</CardGrid>
+
+# Usage Patterns
+
+Learn how to effectively combine these classes and methods to create powerful SVG processing workflows.
+
+## Method Chaining
+
+Six.SvgKit is designed for method chaining to create readable optimization pipelines:
+
+```csharp
+var result = Svg.FromFile("input.svg")
+    .Query()
+    .ConvertShapesToPaths()
+    .MergePaths()
+    .RoundPathSegments(2)
+    .RemoveEmptyNodes()
+    .CleanupAttributes()
+    .CompressOutput()
+    .Build()
+    .SizeComparisonInPercentage(p => Console.WriteLine($"Reduced by {p:F1}%"));
+
+result.ToFile("output.svg");
+```
+
+## Conditional Operations
+
+Apply operations based on conditions:
+
+```csharp
+var builder = svg.Query();
+
+if (optimizeForWeb)
+{
+    builder.DefaultOptimizations();
+}
+
+if (targetFormat == "icon")
+{
+    builder.MonoIconsOptimizations();
+}
+
+var result = builder.Build();
+```
+
+## Batch Processing
+
+Process multiple files efficiently:
+
+```csharp
+var files = Directory.GetFiles("input", "*.svg");
+
+Parallel.ForEach(files, file =>
+{
+    var result = Svg.FromFile(file)
+        .Query()
+        .DefaultOptimizations()
+        .Build();
+    
+    var outputPath = Path.Combine("output", Path.GetFileName(file));
+    result.ToFile(outputPath);
+});
+```
+
+This completes the API reference overview. For detailed documentation of each class and method, explore the individual class pages linked above.

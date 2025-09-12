@@ -1,0 +1,87 @@
+---
+title: Icon Processing
+description: Specialized workflows for optimizing icon sets, converting shapes, and creating consistent icon formats.
+---
+
+# Introduction
+
+Specialized techniques for processing and optimizing icon collections.
+
+# Optimize Icon Sets
+
+```csharp
+using Six.SvgKit;
+using Six.SvgKit.Optimizer;
+
+public static void OptimizeIconSet(string inputDir, string outputDir)
+{
+    var iconFiles = Directory.GetFiles(inputDir, "*.svg");
+    
+    foreach (var file in iconFiles)
+    {
+        var result = Svg.FromFile(file)
+            .Query()
+            .MonoIconsOptimizations(width: 24, height: 24, decimalPlaces: 2)
+            .Build();
+        
+        var outputPath = Path.Combine(outputDir, Path.GetFileName(file));
+        result.ToFile(outputPath);
+        
+        result.SizeComparisonInPercentage(percentage =>
+            Console.WriteLine($"{Path.GetFileName(file)}: {percentage:F1}% reduction"));
+    }
+}
+
+// Usage
+OptimizeIconSet("icons/source", "icons/optimized");
+```
+
+# Convert Shapes to Paths
+
+```csharp
+// Convert circles, rectangles, and ellipses to paths
+var result = Svg.FromFile("shapes.svg")
+    .Query()
+    .ConvertShapesToPaths(precision: 2)
+    .Build();
+
+result.ToFile("paths-only.svg");
+
+// Before: <circle cx="50" cy="50" r="25"/>
+// After:  <path d="M75,50 A25,25 0 1,1 25,50 A25,25 0 1,1 75,50 Z"/>
+```
+
+# Create Consistent Icon Format
+
+```csharp
+public static void StandardizeIcon(string inputPath, string outputPath)
+{
+    var result = Svg.FromFile(inputPath)
+        .Query()
+        .ConvertShapesToPaths()
+        .MergePaths()
+        .RoundPathSegments(1)
+        .RemoveViewBoxAttribute()
+        .Select(node => node.Name == "svg")
+        .Transform(node =>
+        {
+            // Set standard icon dimensions
+            node.SetAttribute("width", "24");
+            node.SetAttribute("height", "24");
+            node.SetAttribute("fill", "none");
+        })
+        .Continue()
+        .Select(node => node.Name == "path")
+        .Transform(node =>
+        {
+            // Set standard path attributes
+            node.SetAttribute("stroke", "currentColor");
+            node.SetAttribute("stroke-width", "2");
+            node.SetAttribute("stroke-linecap", "round");
+            node.SetAttribute("stroke-linejoin", "round");
+        })
+        .Build();
+    
+    result.ToFile(outputPath);
+}
+```

@@ -3,13 +3,13 @@ title: Examples
 description: Practical code examples and real-world scenarios for using Six.SvgKit to process, optimize, and convert SVG files.
 ---
 
-import { Tabs, TabItem, Code } from '@astrojs/starlight/components';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 # Examples
 
 This section provides practical examples and real-world scenarios for using Six.SvgKit in your projects. From basic operations to advanced optimization pipelines, these examples will help you get the most out of the library.
 
-## Basic Operations
+# Basic Operations
 
 ### Loading and Saving SVGs
 
@@ -83,7 +83,7 @@ result.SizeComparisonInBytes((before, after) =>
     Console.WriteLine($"Size changed from {before} to {after} bytes"));
 ```
 
-## Simple Optimizations
+# Simple Optimizations
 
 ### Quick File Size Reduction
 
@@ -145,7 +145,7 @@ svg.CompressOutput = true;
 string minified = svg.ToSvg();
 ```
 
-## Icon Processing
+# Icon Processing
 
 ### Optimize Icon Sets
 
@@ -232,7 +232,7 @@ public static void StandardizeIcon(string inputPath, string outputPath)
 }
 ```
 
-## Batch Processing
+# Batch Processing
 
 ### Parallel SVG Processing
 
@@ -287,8 +287,8 @@ using Six.SvgKit.Optimizer;
 
 public class BatchProcessor
 {
-    public event Action<string, double> FileProcessed;
-    public event Action<int, int> ProgressChanged;
+    public event Action&lt;string, double&gt; FileProcessed;
+    public event Action&lt;int, int&gt; ProgressChanged;
     
     public async Task ProcessDirectoryAsync(string inputDir, string outputDir)
     {
@@ -345,7 +345,7 @@ processor.ProgressChanged += (current, total) => Console.WriteLine($"Progress: {
 await processor.ProcessDirectoryAsync("input", "output");
 ```
 
-## Advanced Scenarios
+# Advanced Scenarios
 
 ### Custom Optimization Pipeline
 
@@ -451,7 +451,7 @@ public class SvgAnalyzer
         public int PathCount { get; set; }
         public bool HasText { get; set; }
         public bool HasGradients { get; set; }
-        public List<string> ElementTypes { get; set; } = new();
+        public List&lt;string&gt; ElementTypes { get; set; } = new();
     }
     
     public static AnalysisReport AnalyzeAndOptimize(string filePath)
@@ -502,7 +502,7 @@ Console.WriteLine($"Total bytes saved: {totalSavings:N0}");
 Console.WriteLine("Most common elements: " + string.Join(", ", mostCommonElements.Select(g => g.Key)));
 ```
 
-## Format Conversion
+# Format Conversion
 
 ### Convert SVG to Bitmap Formats
 
@@ -564,7 +564,7 @@ public static void GenerateIconSet(string svgPath, string outputDir)
 }
 ```
 
-## Integration Examples
+# Integration Examples
 
 ### ASP.NET Core Integration
 

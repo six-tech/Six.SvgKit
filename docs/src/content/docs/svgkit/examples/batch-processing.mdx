@@ -1,0 +1,116 @@
+---
+title: Batch Processing
+description: Efficient techniques for processing multiple SVG files in parallel with progress tracking and error handling.
+---
+
+# Introduction
+
+Efficient techniques for processing multiple SVG files with parallel execution and progress tracking.
+
+# Parallel SVG Processing
+
+```csharp
+using Six.SvgKit;
+using Six.SvgKit.Optimizer;
+
+public static void ProcessSvgDirectory(string sourceDir, string outputDir)
+{
+    // Ensure output directory exists
+    Directory.CreateDirectory(outputDir);
+    
+    var svgFiles = Directory.GetFiles(sourceDir, "*.svg", SearchOption.AllDirectories);
+    var totalFiles = svgFiles.Length;
+    var processed = 0;
+    
+    Parallel.ForEach(svgFiles, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, file =>
+    {
+        try
+        {
+            var relativePath = Path.GetRelativePath(sourceDir, file);
+            var outputPath = Path.Combine(outputDir, relativePath);
+            
+            // Ensure output subdirectory exists
+            Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
+            
+            var result = Svg.FromFile(file)
+                .Query()
+                .DefaultOptimizations()
+                .Build();
+            
+            result.ToFile(outputPath);
+            
+            var currentProcessed = Interlocked.Increment(ref processed);
+            
+            result.SizeComparisonInPercentage(percentage =>
+                Console.WriteLine($"[{currentProcessed}/{totalFiles}] {relativePath}: {percentage:F1}% reduction"));
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error processing {file}: {ex.Message}");
+        }
+    });
+}
+```
+
+# Batch Conversion with Progress Tracking
+
+```csharp
+public class BatchProcessor
+{
+    public event Action<string, double> FileProcessed;
+    public event Action<int, int> ProgressChanged;
+    
+    public async Task ProcessDirectoryAsync(string inputDir, string outputDir)
+    {
+        var files = Directory.GetFiles(inputDir, "*.svg", SearchOption.AllDirectories);
+        var totalFiles = files.Length;
+        var completed = 0;
+        
+        var semaphore = new SemaphoreSlim(Environment.ProcessorCount);
+        var tasks = files.Select(async file =>
+        {
+            await semaphore.WaitAsync();
+            try
+            {
+                await ProcessFileAsync(file, inputDir, outputDir);
+                var current = Interlocked.Increment(ref completed);
+                ProgressChanged?.Invoke(current, totalFiles);
+            }
+            finally
+            {
+                semaphore.Release();
+            }
+        });
+        
+        await Task.WhenAll(tasks);
+    }
+    
+    private async Task ProcessFileAsync(string filePath, string inputDir, string outputDir)
+    {
+        await Task.Run(() =>
+        {
+            var relativePath = Path.GetRelativePath(inputDir, filePath);
+            var outputPath = Path.Combine(outputDir, relativePath);
+            
+            Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
+            
+            var result = Svg.FromFile(filePath)
+                .Query()
+                .DefaultOptimizations()
+                .Build();
+            
+            result.ToFile(outputPath);
+            
+            result.SizeComparisonInPercentage(percentage =>
+                FileProcessed?.Invoke(relativePath, percentage));
+        });
+    }
+}
+
+// Usage
+var processor = new BatchProcessor();
+processor.FileProcessed += (file, reduction) => Console.WriteLine($"{file}: {reduction:F1}% smaller");
+processor.ProgressChanged += (current, total) => Console.WriteLine($"Progress: {current}/{total}");
+
+await processor.ProcessDirectoryAsync("input", "output");
+```

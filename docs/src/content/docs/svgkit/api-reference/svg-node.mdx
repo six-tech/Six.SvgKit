@@ -1,0 +1,260 @@
+---
+title: SvgNode Class
+description: Represents a node in the SVG document tree with properties and methods for manipulation.
+---
+
+# Introduction
+
+Represents a node in the SVG document tree with properties and methods for manipulation.
+
+# Properties
+
+## Guid
+
+Gets the unique identifier of the SVG node.
+
+```csharp
+Guid nodeId = node.Guid;
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Guid` | `Guid` | Unique identifier for this node instance |
+
+---
+
+## Svg
+
+Gets the owner SVG document.
+
+```csharp
+Svg ownerSvg = node.Svg;
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Svg` | `Svg` | The SVG document that owns this node |
+
+---
+
+## Parent
+
+Gets the parent node, or null if this is the root.
+
+```csharp
+SvgNode? parentNode = node.Parent;
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Parent` | `SvgNode?` | The parent node, or `null` for the root element |
+
+---
+
+## Children
+
+Gets the list of child nodes.
+
+```csharp
+List<SvgNode> childNodes = node.Children;
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Children` | `List<SvgNode>` | Collection of child nodes |
+
+---
+
+## Name
+
+Gets the element name (e.g., "svg", "path", "circle").
+
+```csharp
+string elementName = node.Name;
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Name` | `string` | The XML element name |
+
+---
+
+## Attributes
+
+Gets the attribute dictionary for this node.
+
+```csharp
+var fillColor = node.Attributes["fill"];
+node.Attributes["stroke"] = "black";
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `Attributes` | `AttributeDictionary` | Dictionary of element attributes |
+
+---
+
+## TextContent
+
+Gets the text content of this node.
+
+```csharp
+string text = node.TextContent;
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `TextContent` | `string?` | The text content, or `null` if none |
+
+---
+
+## IsRoot
+
+Determines if this is the root SVG element.
+
+```csharp
+bool isRoot = node.IsRoot;
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `IsRoot` | `bool` | `true` if this is the root `&lt;svg&gt;` element |
+
+---
+
+## IsContainer
+
+Determines if this node can contain other nodes.
+
+```csharp
+bool canContainChildren = node.IsContainer;
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `IsContainer` | `bool` | `true` if this node can contain child elements |
+
+---
+
+# Methods
+
+## SetAttribute
+
+Sets an attribute value.
+
+```csharp
+node.SetAttribute("fill", "red");
+node.SetAttribute("stroke-width", "2");
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `key` | `string` | The attribute name |
+| `value` | `string` | The attribute value |
+
+---
+
+## RemoveAttribute
+
+Removes an attribute.
+
+```csharp
+node.RemoveAttribute("fill");
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `key` | `string` | The attribute name to remove |
+
+---
+
+## Remove
+
+Removes this node from its parent.
+
+```csharp
+node.Remove();
+```
+
+---
+
+# Usage Examples
+
+## Working with Attributes
+
+```csharp
+// Check if attribute exists
+if (node.Attributes.ContainsKey("fill"))
+{
+    string fillValue = node.Attributes["fill"];
+}
+
+// Set multiple attributes
+node.SetAttribute("fill", "blue");
+node.SetAttribute("stroke", "black");
+node.SetAttribute("stroke-width", "1");
+
+// Remove unwanted attributes
+node.RemoveAttribute("id");
+node.RemoveAttribute("class");
+```
+
+## Navigating the Tree
+
+```csharp
+// Find all path children
+var pathChildren = node.Children
+    .Where(child => child.Name == "path")
+    .ToList();
+
+// Check if node has specific parent
+if (node.Parent?.Name == "g")
+{
+    // This node is inside a group
+}
+
+// Remove empty groups
+if (node.Name == "g" && !node.Children.Any())
+{
+    node.Remove();
+}
+```
+
+## Node Identification
+
+```csharp
+// Create a map of nodes by their GUID
+var nodeMap = svg.Query()
+    .Select(_ => true)
+    .ToList()
+    .ToDictionary(n => n.Guid, n => n);
+
+// Check if this is the root element
+if (node.IsRoot)
+{
+    Console.WriteLine("This is the root SVG element");
+}
+
+// Work with container elements
+if (node.IsContainer && node.Children.Count > 0)
+{
+    Console.WriteLine($"Container {node.Name} has {node.Children.Count} children");
+}
+```
+
+## Text Content Handling
+
+```csharp
+// Check for text content
+if (!string.IsNullOrWhiteSpace(node.TextContent))
+{
+    Console.WriteLine($"Text content: {node.TextContent}");
+}
+
+// Common with <text> elements
+if (node.Name == "text" && node.TextContent != null)
+{
+    // Process text content
+    var processedText = node.TextContent.Trim();
+}
+```

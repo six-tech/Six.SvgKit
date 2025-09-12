@@ -1,0 +1,138 @@
+---
+title: Examples
+description: Practical code examples and real-world scenarios for using Six.SvgKit to process, optimize, and convert SVG files.
+---
+
+import { LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+# Overview
+
+This section provides practical examples and real-world scenarios for using Six.SvgKit in your projects. From basic operations to advanced optimization pipelines, these examples will help you get the most out of the library.
+
+# Getting Started Examples
+
+<CardGrid>
+  <LinkCard
+    title="Basic Operations"
+    description="Learn fundamental SVG loading, manipulation, and saving operations with simple, straightforward examples."
+    href="/Six.SvgKit/svgkit/examples/basic-operations"
+  />
+  
+  <LinkCard
+    title="Simple Optimizations"
+    description="Quick file size reduction techniques and basic cleanup operations for immediate results."
+    href="/Six.SvgKit/svgkit/examples/simple-optimizations"
+  />
+</CardGrid>
+
+# Processing Workflows
+
+<CardGrid>
+  <LinkCard
+    title="Icon Processing"
+    description="Specialized workflows for optimizing icon sets, converting shapes, and creating consistent icon formats."
+    href="/Six.SvgKit/svgkit/examples/icon-processing"
+  />
+  
+  <LinkCard
+    title="Batch Processing"
+    description="Efficient techniques for processing multiple SVG files in parallel with progress tracking and error handling."
+    href="/Six.SvgKit/svgkit/examples/batch-processing"
+  />
+</CardGrid>
+
+# Advanced Scenarios
+
+<CardGrid>
+  <LinkCard
+    title="Advanced Scenarios"
+    description="Custom optimization pipelines, conditional processing, and SVG analysis techniques for complex requirements."
+    href="/Six.SvgKit/svgkit/examples/advanced-scenarios"
+  />
+  
+  <LinkCard
+    title="Format Conversion"
+    description="Convert SVG files to various bitmap formats (PNG, WebP, JPEG) with different sizes and quality settings."
+    href="/Six.SvgKit/svgkit/examples/format-conversion"
+  />
+</CardGrid>
+
+# Integration Examples
+
+<CardGrid>
+  <LinkCard
+    title="Integration Examples"
+    description="Real-world integration patterns for ASP.NET Core, build scripts, and other development workflows."
+    href="/Six.SvgKit/svgkit/examples/integration-examples"
+  />
+</CardGrid>
+
+# Quick Start
+
+If you're new to Six.SvgKit, start with these basic examples:
+
+## Load and Optimize an SVG
+
+```csharp
+using Six.SvgKit;
+using Six.SvgKit.Optimizer;
+
+// Load SVG and apply basic optimizations
+var result = Svg.FromFile("input.svg")
+    .Query()
+    .DefaultOptimizations()
+    .Build();
+
+// Save optimized version
+result.ToFile("optimized.svg");
+
+// Check the results
+result.SizeComparisonInPercentage(percentage =>
+    Console.WriteLine($"File size reduced by {percentage:F1}%"));
+```
+
+## Create an Icon from SVG
+
+```csharp
+// Optimize for icon use
+var iconResult = Svg.FromFile("logo.svg")
+    .Query()
+    .MonoIconsOptimizations(width: 32, height: 32)
+    .Build();
+
+// Save as SVG and convert to PNG
+iconResult.ToFile("icon.svg");
+iconResult.ModifiedSvg.ToBitmapFile(MagickFormat.Png24, "icon.png", 32, 32);
+```
+
+## Process Multiple Files
+
+```csharp
+var svgFiles = Directory.GetFiles("input", "*.svg");
+
+Parallel.ForEach(svgFiles, file =>
+{
+    var result = Svg.FromFile(file)
+        .Query()
+        .DefaultOptimizations()
+        .Build();
+    
+    var outputPath = Path.Combine("output", Path.GetFileName(file));
+    result.ToFile(outputPath);
+});
+```
+
+# What You'll Learn
+
+Through these examples, you'll discover how to:
+
+- **Load and manipulate** SVG files from strings and files
+- **Apply optimizations** to reduce file sizes significantly
+- **Convert formats** to create bitmap versions of your SVGs
+- **Process files in batches** for efficient workflows
+- **Integrate Six.SvgKit** into your applications and build processes
+- **Handle errors** and edge cases gracefully
+- **Monitor performance** and optimization results
+- **Create custom** optimization pipelines for specific needs
+
+Choose an example category above to get started, or browse through all examples to see the full range of Six.SvgKit capabilities.

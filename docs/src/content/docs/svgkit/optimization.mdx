@@ -9,7 +9,7 @@ import { Tabs, TabItem, Card, CardGrid } from '@astrojs/starlight/components';
 
 Six.SvgKit.Optimizer provides powerful tools for reducing SVG file sizes while maintaining visual quality. This guide covers optimization strategies, techniques, and best practices for different use cases.
 
-## Understanding SVG Optimization
+# Understanding SVG Optimization
 
 SVG optimization involves removing unnecessary elements, simplifying paths, and normalizing attributes while preserving the visual appearance and functionality of the graphic. The goal is to achieve the smallest possible file size without compromising quality.
 
@@ -33,7 +33,7 @@ SVG optimization involves removing unnecessary elements, simplifying paths, and 
   </Card>
 </CardGrid>
 
-## Optimization Presets
+# Optimization Presets
 
 Six.SvgKit provides ready-made optimization presets for common scenarios.
 
@@ -89,7 +89,7 @@ var result = Svg.FromFile("icon.svg")
 - Remove viewBox attribute
 - Set standard fill attributes
 
-## Individual Optimization Techniques
+# Individual Optimization Techniques
 
 ### Path Optimization
 
@@ -273,7 +273,7 @@ svg.Query()
 
 Removes: `<?xml version="1.0" encoding="UTF-8"?>`
 
-## Advanced Optimization Strategies
+# Advanced Optimization Strategies
 
 ### Custom Optimization Pipeline
 
@@ -369,7 +369,7 @@ public static void OptimizeSvgDirectory(string inputDir, string outputDir)
 }
 ```
 
-## Optimization Best Practices
+# Optimization Best Practices
 
 ### 1. Choose the Right Preset
 
@@ -432,7 +432,7 @@ public class OptimizationMetrics
     public TimeSpan ProcessingTime { get; set; }
 }
 
-var metrics = new List<OptimizationMetrics>();
+var metrics = new List&lt;OptimizationMetrics&gt;();
 
 foreach (var file in svgFiles)
 {
@@ -483,7 +483,7 @@ var result = svg.Query()
     .Build();
 ```
 
-## Performance Considerations
+# Performance Considerations
 
 ### Memory Usage
 
@@ -535,7 +535,7 @@ else
 }
 ```
 
-## Troubleshooting
+# Troubleshooting
 
 ### Common Issues
 
@@ -568,4 +568,4 @@ Console.WriteLine($"After cleanup: {step2.ModifiedSvg.ToSvg().Length} characters
 // Continue step by step to identify issues
 ```
 
-This comprehensive guide covers the major optimization techniques available in Six.SvgKit.Optimizer. For practical implementation examples, see the [Examples](/svgkit/examples) section.
+This comprehensive guide covers the major optimization techniques available in Six.SvgKit.Optimizer. For practical implementation examples, see the [Examples](/Six.SvgKit/svgkit/examples) section.

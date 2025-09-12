@@ -1,0 +1,117 @@
+---
+title: Best Practices
+description: Guidelines for choosing the right optimization approach and testing results.
+---
+
+# Introduction
+
+Guidelines for effective SVG optimization that balances file size reduction with visual quality and maintainability.
+
+# Choose the Right Preset
+
+Select optimization presets based on your use case:
+
+## Icons & Simple Graphics
+```csharp
+svg.Query().MonoIconsOptimizations().Build()
+```
+**Best for:** Icons, logos, simple illustrations
+
+## Complex Illustrations
+```csharp
+svg.Query().DefaultOptimizations().Build()
+```
+**Best for:** Detailed illustrations, graphics with text
+
+## Custom Needs
+```csharp
+svg.Query()
+    .ConvertShapesToPaths()
+    .MergePaths()
+    .CleanupAttributes()
+    .Build()
+```
+**Best for:** Specific requirements or performance-critical scenarios
+
+# Test Visual Quality
+
+Always verify that optimizations don't affect visual quality:
+
+```csharp
+var result = svg.Query()
+    .DefaultOptimizations()
+    .Build();
+
+// Save both versions for comparison
+result.OriginalSvg.ToSvgFile("original.svg");
+result.ModifiedSvg.ToSvgFile("optimized.svg");
+
+// Convert to bitmap for visual comparison
+result.OriginalSvg.ToBitmapFile(MagickFormat.Png24, "original.png", 256, 256);
+result.ModifiedSvg.ToBitmapFile(MagickFormat.Png24, "optimized.png", 256, 256);
+```
+
+# Monitor Performance Impact
+
+Track optimization results across your project:
+
+```csharp
+public class OptimizationMetrics
+{
+    public string FileName { get; set; }
+    public int OriginalSize { get; set; }
+    public int OptimizedSize { get; set; }
+    public double ReductionPercentage { get; set; }
+    public TimeSpan ProcessingTime { get; set; }
+}
+
+var metrics = new List&lt;OptimizationMetrics&gt;();
+
+foreach (var file in svgFiles)
+{
+    var stopwatch = Stopwatch.StartNew();
+    
+    var result = Svg.FromFile(file)
+        .Query()
+        .DefaultOptimizations()
+        .Build();
+    
+    stopwatch.Stop();
+    
+    var metric = new OptimizationMetrics
+    {
+        FileName = Path.GetFileName(file),
+        ProcessingTime = stopwatch.Elapsed
+    };
+    
+    result.SizeComparisonInBytes((before, after) =>
+    {
+        metric.OriginalSize = before;
+        metric.OptimizedSize = after;
+        metric.ReductionPercentage = ((double)(before - after) / before) * 100;
+    });
+    
+    metrics.Add(metric);
+}
+
+// Analyze results
+var totalReduction = metrics.Average(m => m.ReductionPercentage);
+var avgProcessingTime = metrics.Average(m => m.ProcessingTime.TotalMilliseconds);
+
+Console.WriteLine($"Average reduction: {totalReduction:F1}%");
+Console.WriteLine($"Average processing time: {avgProcessingTime:F1}ms");
+```
+
+# Preserve Accessibility
+
+Ensure optimizations don't remove accessibility features:
+
+```csharp
+// Preserve important attributes for accessibility
+var result = svg.Query()
+    .SelectAttributes(
+        key => key == "aria-label" || key == "role" || key.StartsWith("aria-"),
+        (node, key, value) => { /* Keep these attributes */ })
+    .DefaultOptimizations()
+    .Build();
+```

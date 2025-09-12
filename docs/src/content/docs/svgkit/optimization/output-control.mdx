@@ -1,0 +1,364 @@
+---
+title: Output Control
+description: Control how SVG output is formatted, compressed, and optimized for different use cases.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+# Introduction
+
+Output control methods determine how the final SVG is formatted and serialized, allowing you to optimize for different use cases such as web deployment, development, or storage.
+
+# XML Declaration Control
+
+## Remove XML Declaration
+
+Removes the XML declaration from the output:
+
+```csharp
+svg.Query()
+    .RemoveXmlDeclaration()
+    .Build();
+```
+
+<Tabs>
+  <TabItem label="Before">
+    ```xml
+    <?xml version="1.0" encoding="UTF-8"?>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24">
+        <circle cx="12" cy="12" r="10"/>
+    </svg>
+    ```
+  </TabItem>
+  
+  <TabItem label="After">
+    ```xml
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24">
+        <circle cx="12" cy="12" r="10"/>
+    </svg>
+    ```
+  </TabItem>
+</Tabs>
+
+### When to Remove XML Declaration
+
+| Use Case | Remove? | Reason |
+|----------|---------|--------|
+| Web/HTML inline | ✅ Yes | Not needed in HTML context |
+| Standalone SVG files | ❌ No | Helps with proper parsing |
+| Data URIs | ✅ Yes | Reduces size |
+| SVG sprites | ✅ Yes | Not needed for embedded use |
+
+```csharp
+// Web-optimized SVG
+var webSvg = svg.Query()
+    .RemoveXmlDeclaration()
+    .CompressOutput()
+    .Build();
+
+// Standalone file (keep declaration)
+var standaloneSvg = svg.Query()
+    .CleanupAttributes()
+    .Build(); // XML declaration preserved
+```
+
+---
+
+# Attribute Control
+
+## Remove ViewBox Attribute
+
+Removes the viewBox attribute from the root SVG element:
+
+```csharp
+svg.Query()
+    .RemoveViewBoxAttribute()
+    .Build();
+```
+
+<Tabs>
+  <TabItem label="Before">
+    ```xml
+    <svg width="24" height="24" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10"/>
+    </svg>
+    ```
+  </TabItem>
+  
+  <TabItem label="After">
+    ```xml
+    <svg width="24" height="24">
+        <circle cx="12" cy="12" r="10"/>
+    </svg>
+    ```
+  </TabItem>
+</Tabs>
+
+### When to Remove ViewBox
+
+| Scenario | Remove? | Reason |
+|----------|---------|--------|
+| Fixed-size icons | ✅ Yes | Width/height are sufficient |
+| Responsive SVGs | ❌ No | ViewBox needed for scaling |
+| Icons in icon fonts | ✅ Yes | Size is controlled externally |
+| Illustrations | ❌ No | ViewBox provides flexibility |
+
+```csharp
+// Icon optimization (remove viewBox)
+var iconResult = svg.Query()
+    .MonoIconsOptimizations() // Includes RemoveViewBoxAttribute
+    .Build();
+
+// Responsive graphic (keep viewBox)
+var responsiveResult = svg.Query()
+    .DefaultOptimizations() // Preserves viewBox
+    .Build();
+```
+
+---
+
+# Compression and Formatting
+
+## Compress Output
+
+Enables output compression to remove unnecessary whitespace:
+
+```csharp
+svg.Query()
+    .CompressOutput()
+    .Build();
+```
+
+<Tabs>
+  <TabItem label="Before">
+    ```xml
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24">
+        <path d="M10,10 L20,20" fill="blue" />
+        <circle cx="12" cy="12" r="5" fill="red" />
+    </svg>
+    ```
+  </TabItem>
+  
+  <TabItem label="After">
+    ```xml
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"><path d="M10,10 L20,20" fill="blue"/><circle cx="12" cy="12" r="5" fill="red"/></svg>
+    ```
+  </TabItem>
+</Tabs>
+
+### Compression Benefits
+
+| Benefit | Description |
+|---------|-------------|
+| **Smaller file size** | Removes all unnecessary whitespace |
+| **Faster parsing** | Less content to process |
+| **Better caching** | Smaller files cache more efficiently |
+| **Reduced bandwidth** | Less data transfer |
+
+### When to Use Compression
+
+```csharp
+// Production/deployment - always compress
+var productionSvg = svg.Query()
+    .DefaultOptimizations()
+    .CompressOutput()
+    .Build();
+
+// Development - keep readable formatting
+var developmentSvg = svg.Query()
+    .CleanupAttributes()
+    // Don't compress for easier debugging
+    .Build();
+```
+
+---
+
+# Alternative Output Control Methods
+
+## Using SVG Properties
+
+You can also control output formatting using SVG instance properties:
+
+```csharp
+var svg = Svg.FromFile("input.svg");
+
+// Control compression
+svg.CompressOutput = true;
+
+// Control XML declaration
+svg.OmmitXmlDeclaration = true;
+
+// Get formatted output
+string compressedSvg = svg.ToSvg();
+```
+
+## Method Comparison
+
+| Method | Scope | Use Case |
+|--------|-------|----------|
+| **Query Builder** | Part of optimization pipeline | When combining with other optimizations |
+| **SVG Properties** | Direct control | When you only need output formatting |
+
+<Tabs>
+  <TabItem label="Query Builder Approach">
+    ```csharp
+    var result = svg.Query()
+        .CleanupAttributes()
+        .RemoveEmptyNodes()
+        .RemoveXmlDeclaration()
+        .CompressOutput()
+        .Build();
+    
+    result.ToFile("optimized.svg");
+    ```
+  </TabItem>
+  
+  <TabItem label="Properties Approach">
+    ```csharp
+    svg.CompressOutput = true;
+    svg.OmmitXmlDeclaration = true;
+    
+    svg.ToSvgFile("compressed.svg");
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+# Output Control Strategies
+
+## Web Optimization
+
+```csharp
+public static SvgResult OptimizeForWeb(Svg svg)
+{
+    return svg.Query()
+        .DefaultOptimizations()      // Clean up content
+        .RemoveXmlDeclaration()     // Not needed in HTML
+        .CompressOutput()           // Minimize file size
+        .Build();
+}
+
+// Usage
+var webSvg = OptimizeForWeb(svg);
+webSvg.ToFile("web-optimized.svg");
+```
+
+## Icon Optimization
+
+```csharp
+public static SvgResult OptimizeIcon(Svg svg, int size = 24)
+{
+    return svg.Query()
+        .MonoIconsOptimizations(size, size, 1)  // Includes viewBox removal
+        .RemoveXmlDeclaration()                 // Not needed for icons
+        .CompressOutput()                       // Maximum compression
+        .Build();
+}
+```
+
+## Development-Friendly Output
+
+```csharp
+public static SvgResult OptimizeForDevelopment(Svg svg)
+{
+    return svg.Query()
+        .CleanupAttributes()        // Clean but don't remove structure
+        .RemoveEmptyAttributes()    // Remove obvious cruft
+        // Keep XML declaration and formatting for readability
+        .Build();
+}
+```
+
+## Conditional Output Control
+
+```csharp
+public static SvgResult OptimizeWithEnvironment(Svg svg, bool isProduction)
+{
+    var builder = svg.Query()
+        .DefaultOptimizations();
+    
+    if (isProduction)
+    {
+        builder.RemoveXmlDeclaration()
+               .CompressOutput();
+    }
+    
+    return builder.Build();
+}
+
+// Usage
+var result = OptimizeWithEnvironment(svg, isProduction: true);
+```
+
+# Advanced Output Control
+
+## Size-Based Compression
+
+```csharp
+public static SvgResult SmartCompression(Svg svg)
+{
+    var initialSize = svg.ToSvg().Length;
+    
+    var builder = svg.Query()
+        .DefaultOptimizations();
+    
+    // Only compress if file is larger than 1KB
+    if (initialSize > 1024)
+    {
+        builder.CompressOutput();
+    }
+    
+    return builder.Build();
+}
+```
+
+## Format Detection
+
+```csharp
+public static SvgResult OptimizeByUsage(Svg svg, string outputPath)
+{
+    var builder = svg.Query()
+        .DefaultOptimizations();
+    
+    // Detect usage context from file path or name
+    if (outputPath.Contains("icon") || outputPath.Contains("sprite"))
+    {
+        builder.RemoveViewBoxAttribute()
+               .RemoveXmlDeclaration()
+               .CompressOutput();
+    }
+    else if (outputPath.Contains("web") || outputPath.Contains("inline"))
+    {
+        builder.RemoveXmlDeclaration()
+               .CompressOutput();
+    }
+    
+    return builder.Build();
+}
+```
+
+## Output Validation
+
+```csharp
+public static void ValidateOutput(SvgResult result)
+{
+    var output = result.ModifiedSvg.ToSvg();
+    
+    // Check for common issues
+    if (output.Contains("<?xml") && output.Contains("inline"))
+    {
+        Console.WriteLine("Warning: XML declaration in inline SVG");
+    }
+    
+    if (output.Length > 10000 && !output.Contains("viewBox"))
+    {
+        Console.WriteLine("Warning: Large SVG without viewBox");
+    }
+    
+    result.SizeComparisonInPercentage(p =>
+        Console.WriteLine($"Output control optimizations: {p:F1}% reduction"));
+}
+```
+
+Output control is the final step in SVG optimization, ensuring your files are formatted appropriately for their intended use while maximizing performance benefits.

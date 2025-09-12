@@ -1,0 +1,157 @@
+---
+title: Advanced Scenarios
+description: Custom optimization pipelines, conditional processing, and SVG analysis techniques for complex requirements.
+---
+
+# Introduction
+
+Advanced techniques for complex SVG processing requirements and custom workflows.
+
+# Custom Optimization Pipeline
+
+```csharp
+using Six.SvgKit;
+using Six.SvgKit.Optimizer;
+
+public static class CustomOptimizer
+{
+    public static SvgQueryBuilder WebOptimization(this SvgQueryBuilder builder)
+    {
+        return builder
+            .ConvertShapesToPaths(2)
+            .MergePaths()
+            .MergePathCommands()
+            .RoundPathSegments(2)
+            .RemoveEmptyNodes()
+            .RemoveEmptyAttributes()
+            .CollapseGroups()
+            .CleanupAttributes()
+            .RemoveXmlDeclaration()
+            .CompressOutput();
+    }
+    
+    public static SvgQueryBuilder PrintOptimization(this SvgQueryBuilder builder)
+    {
+        return builder
+            .ConvertShapesToPaths(3)  // Higher precision for print
+            .CleanupAttributes()
+            .RemoveEmptyNodes()
+            .RemoveEmptyAttributes();
+            // Keep formatting for print readability
+    }
+}
+
+// Usage
+var webResult = svg.Query().WebOptimization().Build();
+var printResult = svg.Query().PrintOptimization().Build();
+```
+
+# Conditional Processing
+
+```csharp
+public static SvgResult SmartOptimize(Svg svg)
+{
+    var builder = svg.Query();
+    
+    // Analyze the SVG content
+    var nodes = svg.Query().Select(_ => true).ToList();
+    var hasText = nodes.Any(n => n.Name == "text");
+    var hasGradients = nodes.Any(n => n.Name == "linearGradient" || n.Name == "radialGradient");
+    var pathCount = nodes.Count(n => n.Name == "path");
+    var shapeCount = nodes.Count(n => n.Name == "circle" || n.Name == "rect" || n.Name == "ellipse");
+    var fileSize = svg.ToSvg().Length;
+    
+    // Apply optimizations based on content analysis
+    if (fileSize < 1000)
+    {
+        // Light optimization for small files
+        builder.RemoveEmptyAttributes().CompressOutput();
+    }
+    else if (!hasText && !hasGradients && shapeCount > 0)
+    {
+        // Aggressive optimization for simple graphics
+        builder.MonoIconsOptimizations();
+    }
+    else if (pathCount > 5)
+    {
+        // Focus on path optimization
+        builder.MergePaths().MergePathCommands().RoundPathSegments(2);
+    }
+    else
+    {
+        // Standard optimization
+        builder.DefaultOptimizations();
+    }
+    
+    return builder.Build();
+}
+
+// Usage
+var result = SmartOptimize(svg);
+```
+
+# SVG Analysis and Reporting
+
+```csharp
+public class SvgAnalyzer
+{
+    public class AnalysisReport
+    {
+        public string FileName { get; set; }
+        public int OriginalSize { get; set; }
+        public int OptimizedSize { get; set; }
+        public double ReductionPercentage { get; set; }
+        public int ElementCount { get; set; }
+        public int PathCount { get; set; }
+        public bool HasText { get; set; }
+        public bool HasGradients { get; set; }
+        public List<string> ElementTypes { get; set; } = new();
+    }
+    
+    public static AnalysisReport AnalyzeAndOptimize(string filePath)
+    {
+        var svg = Svg.FromFile(filePath);
+        var nodes = svg.Query().Select(_ => true).ToList();
+        
+        var report = new AnalysisReport
+        {
+            FileName = Path.GetFileName(filePath),
+            OriginalSize = svg.ToSvg().Length,
+            ElementCount = nodes.Count,
+            PathCount = nodes.Count(n => n.Name == "path"),
+            HasText = nodes.Any(n => n.Name == "text"),
+            HasGradients = nodes.Any(n => n.Name.Contains("Gradient")),
+            ElementTypes = nodes.Select(n => n.Name).Distinct().ToList()
+        };
+        
+        var result = svg.Query()
+            .DefaultOptimizations()
+            .Build();
+        
+        result.SizeComparisonInPercentage(percentage =>
+            report.ReductionPercentage = percentage);
+        
+        report.OptimizedSize = result.ModifiedSvg.ToSvg().Length;
+        
+        return report;
+    }
+}
+
+// Usage
+var reports = Directory.GetFiles("svg-files", "*.svg")
+    .Select(SvgAnalyzer.AnalyzeAndOptimize)
+    .ToList();
+
+// Generate summary
+var avgReduction = reports.Average(r => r.ReductionPercentage);
+var totalSavings = reports.Sum(r => r.OriginalSize - r.OptimizedSize);
+var mostCommonElements = reports
+    .SelectMany(r => r.ElementTypes)
+    .GroupBy(e => e)
+    .OrderByDescending(g => g.Count())
+    .Take(5);
+
+Console.WriteLine($"Average reduction: {avgReduction:F1}%");
+Console.WriteLine($"Total bytes saved: {totalSavings:N0}");
+Console.WriteLine("Most common elements: " + string.Join(", ", mostCommonElements.Select(g => g.Key)));
+```

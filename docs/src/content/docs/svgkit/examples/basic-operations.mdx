@@ -1,0 +1,127 @@
+---
+title: Basic Operations
+description: Learn fundamental SVG loading, manipulation, and saving operations with simple, straightforward examples.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+# Introduction
+
+Learn the fundamental operations for working with SVG files using Six.SvgKit.
+
+# Loading and Saving SVGs
+
+<Tabs>
+  <TabItem label="From File">
+    ```csharp
+    using Six.SvgKit;
+    
+    // Load SVG from file
+    var svg = Svg.FromFile("input/icon.svg");
+    
+    // Save to new location
+    svg.ToSvgFile("output/icon.svg");
+    
+    // Get as string
+    string svgContent = svg.ToSvg();
+    
+    // Get as bytes
+    byte[] svgBytes = svg.ToBytes();
+    ```
+  </TabItem>
+  
+  <TabItem label="From String">
+    ```csharp
+    using Six.SvgKit;
+    
+    var svgString = @"<?xml version=""1.0"" encoding=""UTF-8""?>
+    <svg xmlns=""http://www.w3.org/2000/svg"" width=""100"" height=""100"" viewBox=""0 0 100 100"">
+        <circle cx=""50"" cy=""50"" r=""40"" fill=""blue"" stroke=""black"" stroke-width=""2""/>
+        <rect x=""20"" y=""70"" width=""60"" height=""20"" fill=""red""/>
+    </svg>";
+    
+    var svg = Svg.FromString(svgString);
+    svg.ToSvgFile("circle-and-rect.svg");
+    ```
+  </TabItem>
+  
+  <TabItem label="With Metadata">
+    ```csharp
+    using Six.SvgKit;
+    
+    var metadata = new SvgMetadata();
+    var svg = Svg.FromFile("icon.svg")
+        .WithMetadata(metadata);
+    
+    // Metadata is preserved when cloning
+    var clonedSvg = svg.Clone();
+    Console.WriteLine($"Metadata preserved: {clonedSvg.Metadata != null}");
+    ```
+  </TabItem>
+</Tabs>
+
+# Basic SVG Manipulation
+
+Change elements and attributes in SVG files:
+
+```csharp
+using Six.SvgKit;
+
+var svg = Svg.FromFile("input.svg");
+
+// Change fill color of all path elements
+var result = svg.Query()
+    .Select(node => node.Name == "path")
+    .Transform(node => node.SetAttribute("fill", "red"))
+    .Build();
+
+// Save the modified SVG
+result.ToFile("red-paths.svg");
+
+// Check what changed
+result.SizeComparisonInBytes((before, after) => 
+    Console.WriteLine($"Size changed from {before} to {after} bytes"));
+```
+
+# Working with SVG Properties
+
+Control output formatting and behavior:
+
+```csharp
+var svg = Svg.FromFile("input.svg");
+
+// Enable compression (removes whitespace)
+svg.CompressOutput = true;
+
+// Disable XML declaration
+svg.OmmitXmlDeclaration = true;
+
+string compressedSvg = svg.ToSvg();
+svg.ToSvgFile("compressed.svg");
+```
+
+# Error Handling
+
+Handle common scenarios gracefully:
+
+```csharp
+public static bool TryProcessSvg(string filePath, string outputPath)
+{
+    try
+    {
+        var svg = Svg.FromFile(filePath);
+        svg.ToSvgFile(outputPath);
+        return true;
+    }
+    catch (FileNotFoundException)
+    {
+        Console.WriteLine($"SVG file not found: {filePath}");
+        return false;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error processing SVG: {ex.Message}");
+        return false;
+    }
+}
+```

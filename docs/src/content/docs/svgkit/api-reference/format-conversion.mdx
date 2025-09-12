@@ -1,0 +1,247 @@
+---
+title: Format Conversion Extensions
+description: Extensions for converting SVG files to various bitmap formats using ImageMagick integration.
+---
+
+# Introduction
+
+Extensions for converting SVG files to various bitmap formats using ImageMagick integration.
+
+# Bitmap Conversion
+
+## ToBitmapFile
+
+Converts SVG to various bitmap formats using ImageMagick.
+
+```csharp
+svg.ToBitmapFile(MagickFormat.Png24, "icon.png", 256, 256);
+svg.ToBitmapFile(MagickFormat.WebP, "icon.webp", 128, 128);
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `format` | `MagickFormat` | Target bitmap format |
+| `path` | `string` | Output file path |
+| `width` | `int` | Output width in pixels |
+| `height` | `int` | Output height in pixels |
+
+| Supported Formats |
+|------------------|
+| PNG24 (24-bit PNG) |
+| WebP |
+| JPEG |
+| BMP |
+| TIFF |
+| GIF |
+| ICO |
+| And many more... |
+
+---
+
+# Usage Examples
+
+## Basic Format Conversion
+
+```csharp
+using Six.SvgKit;
+using ImageMagick;
+
+var svg = Svg.FromFile("icon.svg");
+
+// Convert to PNG at different sizes
+svg.ToBitmapFile(MagickFormat.Png24, "icon-256.png", 256, 256);
+svg.ToBitmapFile(MagickFormat.Png24, "icon-128.png", 128, 128);
+svg.ToBitmapFile(MagickFormat.Png24, "icon-64.png", 64, 64);
+svg.ToBitmapFile(MagickFormat.Png24, "icon-32.png", 32, 32);
+```
+
+## Multiple Format Export
+
+```csharp
+var svg = Svg.FromFile("logo.svg");
+var size = 512;
+
+// Export to multiple formats
+svg.ToBitmapFile(MagickFormat.Png24, $"logo-{size}.png", size, size);
+svg.ToBitmapFile(MagickFormat.WebP, $"logo-{size}.webp", size, size);
+svg.ToBitmapFile(MagickFormat.Jpeg, $"logo-{size}.jpg", size, size);
+svg.ToBitmapFile(MagickFormat.Bmp, $"logo-{size}.bmp", size, size);
+```
+
+## Icon Set Generation
+
+```csharp
+public static void GenerateIconSet(string svgPath, string outputDir)
+{
+    var svg = Svg.FromFile(svgPath);
+    var sizes = new[] { 16, 24, 32, 48, 64, 128, 256, 512 };
+    var formats = new[]
+    {
+        (MagickFormat.Png24, "png"),
+        (MagickFormat.WebP, "webp"),
+        (MagickFormat.Ico, "ico")
+    };
+    
+    Directory.CreateDirectory(outputDir);
+    
+    foreach (var size in sizes)
+    {
+        foreach (var (format, extension) in formats)
+        {
+            var filename = $"icon-{size}x{size}.{extension}";
+            var outputPath = Path.Combine(outputDir, filename);
+            svg.ToBitmapFile(format, outputPath, size, size);
+        }
+    }
+}
+```
+
+## Optimized Conversion Pipeline
+
+```csharp
+using Six.SvgKit;
+using Six.SvgKit.Optimizer;
+using ImageMagick;
+
+public static void OptimizeAndConvert(string inputPath, string outputDir)
+{
+    // First optimize the SVG
+    var result = Svg.FromFile(inputPath)
+        .Query()
+        .MonoIconsOptimizations()
+        .Build();
+    
+    var optimizedSvg = result.ModifiedSvg;
+    
+    // Save optimized SVG
+    optimizedSvg.ToSvgFile(Path.Combine(outputDir, "optimized.svg"));
+    
+    // Convert to bitmap formats
+    var sizes = new[] { 32, 64, 128, 256 };
+    
+    foreach (var size in sizes)
+    {
+        // PNG for general use
+        optimizedSvg.ToBitmapFile(
+            MagickFormat.Png24, 
+            Path.Combine(outputDir, $"icon-{size}.png"), 
+            size, size
+        );
+        
+        // WebP for web optimization
+        optimizedSvg.ToBitmapFile(
+            MagickFormat.WebP, 
+            Path.Combine(outputDir, $"icon-{size}.webp"), 
+            size, size
+        );
+    }
+    
+    // Show optimization results
+    result.SizeComparisonInPercentage(percentage =>
+        Console.WriteLine($"SVG optimized by {percentage:F1}%"));
+}
+```
+
+## Batch Conversion
+
+```csharp
+public static void ConvertSvgDirectory(string inputDir, string outputDir)
+{
+    var svgFiles = Directory.GetFiles(inputDir, "*.svg");
+    
+    foreach (var svgFile in svgFiles)
+    {
+        var fileName = Path.GetFileNameWithoutExtension(svgFile);
+        var svg = Svg.FromFile(svgFile);
+        
+        // Create subdirectory for this SVG's outputs
+        var svgOutputDir = Path.Combine(outputDir, fileName);
+        Directory.CreateDirectory(svgOutputDir);
+        
+        // Convert to multiple sizes and formats
+        var sizes = new[] { 64, 128, 256 };
+        var formats = new[]
+        {
+            (MagickFormat.Png24, "png"),
+            (MagickFormat.WebP, "webp")
+        };
+        
+        foreach (var size in sizes)
+        {
+            foreach (var (format, ext) in formats)
+            {
+                var outputPath = Path.Combine(svgOutputDir, $"{fileName}-{size}.{ext}");
+                svg.ToBitmapFile(format, outputPath, size, size);
+            }
+        }
+        
+        Console.WriteLine($"Converted {fileName} to {sizes.Length * formats.Length} bitmap files");
+    }
+}
+```
+
+## Web Asset Generation
+
+```csharp
+public static void GenerateWebAssets(string svgPath, string webDir)
+{
+    var svg = Svg.FromFile(svgPath)
+        .Query()
+        .DefaultOptimizations()
+        .Build()
+        .ModifiedSvg;
+    
+    // Save optimized SVG for inline use
+    svg.ToSvgFile(Path.Combine(webDir, "icon.svg"));
+    
+    // Generate favicon sizes
+    var faviconSizes = new[] { 16, 32, 48 };
+    foreach (var size in faviconSizes)
+    {
+        svg.ToBitmapFile(
+            MagickFormat.Ico, 
+            Path.Combine(webDir, $"favicon-{size}x{size}.ico"), 
+            size, size
+        );
+    }
+    
+    // Generate app icon sizes
+    var appIconSizes = new[] { 192, 512 };
+    foreach (var size in appIconSizes)
+    {
+        svg.ToBitmapFile(
+            MagickFormat.Png24, 
+            Path.Combine(webDir, $"icon-{size}x{size}.png"), 
+            size, size
+        );
+    }
+    
+    // Generate WebP versions for modern browsers
+    svg.ToBitmapFile(MagickFormat.WebP, Path.Combine(webDir, "icon-192.webp"), 192, 192);
+    svg.ToBitmapFile(MagickFormat.WebP, Path.Combine(webDir, "icon-512.webp"), 512, 512);
+}
+```
+
+## Error Handling
+
+```csharp
+public static bool TryConvertSvg(string svgPath, string outputPath, int size)
+{
+    try
+    {
+        var svg = Svg.FromFile(svgPath);
+        svg.ToBitmapFile(MagickFormat.Png24, outputPath, size, size);
+        return true;
+    }
+    catch (FileNotFoundException)
+    {
+        Console.WriteLine($"SVG file not found: {svgPath}");
+        return false;
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Error converting {svgPath}: {ex.Message}");
+        return false;
+    }
+}
+```

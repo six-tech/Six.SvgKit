@@ -1,0 +1,162 @@
+---
+title: Advanced Strategies
+description: Custom optimization pipelines, conditional processing, and batch optimization techniques.
+---
+
+# Introduction
+
+Advanced optimization strategies allow you to create custom pipelines, implement conditional logic, and handle complex optimization scenarios.
+
+# Custom Optimization Pipeline
+
+Create a tailored optimization pipeline for specific needs:
+
+```csharp
+public static class CustomOptimizer
+{
+    public static SvgQueryBuilder WebOptimization(this SvgQueryBuilder builder)
+    {
+        return builder
+            .ConvertShapesToPaths(2)
+            .MergePaths()
+            .MergePathCommands()
+            .RoundPathSegments(2)
+            .RemoveEmptyNodes()
+            .RemoveEmptyAttributes()
+            .CollapseGroups()
+            .CleanupAttributes()
+            .RemoveXmlDeclaration()
+            .CompressOutput();
+    }
+    
+    public static SvgQueryBuilder PrintOptimization(this SvgQueryBuilder builder)
+    {
+        return builder
+            .ConvertShapesToPaths(3)  // Higher precision for print
+            .CleanupAttributes()
+            .RemoveEmptyNodes()
+            .RemoveEmptyAttributes();
+            // Keep formatting for print readability
+    }
+}
+
+// Usage
+var webResult = svg.Query().WebOptimization().Build();
+var printResult = svg.Query().PrintOptimization().Build();
+```
+
+# Conditional Processing
+
+Apply different optimizations based on content analysis:
+
+```csharp
+public static SvgResult SmartOptimize(Svg svg)
+{
+    var builder = svg.Query();
+    
+    // Analyze the SVG content
+    var nodes = svg.Query().Select(_ => true).ToList();
+    var hasText = nodes.Any(n => n.Name == "text");
+    var hasGradients = nodes.Any(n => n.Name == "linearGradient" || n.Name == "radialGradient");
+    var pathCount = nodes.Count(n => n.Name == "path");
+    var shapeCount = nodes.Count(n => n.Name == "circle" || n.Name == "rect" || n.Name == "ellipse");
+    var fileSize = svg.ToSvg().Length;
+    
+    // Apply optimizations based on content analysis
+    if (fileSize < 1000)
+    {
+        // Light optimization for small files
+        builder.RemoveEmptyAttributes().CompressOutput();
+    }
+    else if (!hasText && !hasGradients && shapeCount > 0)
+    {
+        // Aggressive optimization for simple graphics
+        builder.MonoIconsOptimizations();
+    }
+    else if (pathCount > 5)
+    {
+        // Focus on path optimization
+        builder.MergePaths().MergePathCommands().RoundPathSegments(2);
+    }
+    else
+    {
+        // Standard optimization
+        builder.DefaultOptimizations();
+    }
+    
+    return builder.Build();
+}
+```
+
+# Batch Optimization
+
+Process multiple files with consistent settings:
+
+```csharp
+public static void OptimizeSvgDirectory(string inputDir, string outputDir)
+{
+    var svgFiles = Directory.GetFiles(inputDir, "*.svg", SearchOption.AllDirectories);
+    
+    Parallel.ForEach(svgFiles, file =>
+    {
+        try
+        {
+            var relativePath = Path.GetRelativePath(inputDir, file);
+            var outputPath = Path.Combine(outputDir, relativePath);
+            
+            // Ensure output directory exists
+            Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
+            
+            var result = Svg.FromFile(file)
+                .Query()
+                .DefaultOptimizations()
+                .Build();
+            
+            result.ToFile(outputPath);
+            
+            // Log optimization results
+            result.SizeComparisonInPercentage(percentage =>
+                Console.WriteLine($"{relativePath}: {percentage:F1}% reduction"));
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error processing {file}: {ex.Message}");
+        }
+    });
+}
+```
+
+# Progressive Optimization
+
+Apply optimizations in stages to understand their impact:
+
+```csharp
+public static void ProgressiveOptimization(string inputPath, string outputDir)
+{
+    var svg = Svg.FromFile(inputPath);
+    var stages = new Dictionary<string, Func<SvgQueryBuilder, SvgQueryBuilder>>
+    {
+        ["01-cleanup"] = b => b.RemoveEmptyNodes().RemoveEmptyAttributes(),
+        ["02-paths"] = b => b.ConvertShapesToPaths().MergePaths(),
+        ["03-attributes"] = b => b.CleanupAttributes(),
+        ["04-compression"] = b => b.CompressOutput()
+    };
+    
+    var currentSvg = svg;
+    
+    foreach (var (stageName, optimization) in stages)
+    {
+        var result = currentSvg.Query()
+            .Apply(optimization)
+            .Build();
+        
+        var outputPath = Path.Combine(outputDir, $"{stageName}.svg");
+        result.ToFile(outputPath);
+        
+        result.SizeComparisonInPercentage(p =>
+            Console.WriteLine($"{stageName}: {p:F1}% reduction"));
+        
+        currentSvg = result.ModifiedSvg;
+    }
+}
+```

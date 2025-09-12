@@ -1,6 +1,6 @@
 ---
-title: Powerful .NET solution template for your projects
-description: A production-ready solution template that provides a complete foundation for building .NET libraries and applications
+title: Six SvgKit
+description: A .NET library for parsing, manipulating, and optimizing SVG files.
 head:
   - tag: title
 editUrl: false
@@ -19,7 +19,7 @@ import heroImage from '../../assets/hero-banner-blank.png'
     radius="1.5rem"
     image={{
         background: heroImage,
-        alt: "Hero background image",
+        alt: "Six SvgKit Hero Background",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
@@ -28,41 +28,45 @@ import heroImage from '../../assets/hero-banner-blank.png'
     actions={[
         {
             text: "Get Started",
-            link: "/Six.SolutionTemplate/introduction/"
+            link: "/Six.SvgKit/svgkit/getting-started/"
+        },
+        {
+            text: "View Examples",
+            link: "/Six.SvgKit/svgkit/examples/",
+            variant: "secondary"
         }
     ]}
 />
 
 <ContainerSection>
     <CardGrid>
-        <Card title="Simple but Powerful" icon="rocket">
-            Complete .NET development foundation with standardized project structure, automated scripts, and
-            professional tooling for building high-quality libraries and applications.
+        <Card title="SVG Parsing & Manipulation" icon="document">
+            Parse SVG files from strings or files with a fluent API. Access and modify SVG elements, attributes, 
+            and structure with ease using the powerful **SvgQueryBuilder**.
         </Card>
 
-        <Card title="Standardized Development" icon="setting">
-            Consistent project structure, coding standards, and automated workflows ensure high-quality,
-            maintainable code across all projects.
+        <Card title="Advanced Optimization" icon="rocket">
+            Built-in optimization techniques including path merging, shape conversion, attribute cleanup, 
+            and compression. Reduce file sizes by up to 70% while maintaining visual quality.
         </Card>
 
-        <Card title="Easy Testing" icon="approve-check-circle">
-            Automated testing with C# scripts for running tests, collecting coverage, and generating detailed reports.
-            Integrated with GitHub Actions for CI/CD pipelines.
+        <Card title="Batch Processing" icon="list-format">
+            Process multiple SVG files in parallel with configurable optimization presets. Perfect for 
+            icon sets and large-scale SVG processing workflows.
         </Card>
-    
-        <Card title="NuGet Packaging & Publishing" icon="pencil">
-            Automated NuGet package creation and publishing to multiple feeds (local, dev, staging, production) with
-            GitVersion integration and symbol package support.
+        <Card title="Format Conversion" icon="seti:image">
+            Convert SVG files to various bitmap formats (PNG, WebP, JPEG) using ImageMagick integration. 
+            Generate multiple sizes and formats for web and mobile applications.
         </Card>    
     
-        <Card title="Documentation Website" icon="external">
-            Built with Astro.js Starlight framework for modern, fast, and SEO-optimized documentation sites with
-            professional theming and deployment to GitHub Pages.
+        <Card title="Performance Optimized" icon="star">
+            Built for performance with parallel processing, memory-efficient operations, and fast parsing 
+            using **AngleSharp**. Handle thousands of SVG files efficiently.
         </Card>
 
-        <Card title="AI-Powered Integration" icon="star">
-            Pre-configured **Cursor rules and Kiro steering** files with **AGENTS.md** template provide intelligent
-            AI assistance for development and documentation tasks.
+        <Card title="Production Ready" icon="approve-check">
+            Comprehensive testing, and detailed documentation. Used in production 
+            environments with extensive API coverage and real-world examples.
         </Card>
     </CardGrid>
 </ContainerSection>

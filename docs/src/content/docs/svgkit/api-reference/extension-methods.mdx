@@ -1,0 +1,327 @@
+---
+title: Extension Methods
+description: Comprehensive collection of SVG optimization methods including presets, path optimization, cleanup operations, and output control.
+---
+
+# Introduction
+
+The optimizer package provides numerous extension methods for the `SvgQueryBuilder` class.
+
+# Preset Optimizations
+
+## DefaultOptimizations
+
+Applies a comprehensive set of standard optimizations.
+
+```csharp
+var result = svg.Query()
+    .DefaultOptimizations()
+    .Build();
+```
+
+| Operations Performed |
+|---------------------|
+| Remove XML declaration |
+| Remove empty nodes, attributes, and text |
+| Remove empty containers |
+| Collapse unnecessary groups |
+| Clean up attributes |
+| Compress output |
+
+| Returns | Description |
+|---------|-------------|
+| `SvgQueryBuilder` | The current builder instance for method chaining |
+
+---
+
+## MonoIconsOptimizations
+
+Optimizes monochromatic icon sets with specific parameters.
+
+```csharp
+var result = svg.Query()
+    .MonoIconsOptimizations(width: 32, height: 32, decimalPlaces: 1)
+    .Build();
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `width` | `int` | `24` | Target width for the SVG |
+| `height` | `int` | `24` | Target height for the SVG |
+| `decimalPlaces` | `int` | `2` | Decimal precision for path coordinates |
+
+| Operations Performed |
+|---------------------|
+| Convert shapes to paths |
+| Merge paths with similar styles |
+| Round path segments to specified precision |
+| Apply default optimizations |
+| Set standard icon attributes |
+
+| Returns | Description |
+|---------|-------------|
+| `SvgQueryBuilder` | The current builder instance for method chaining |
+
+---
+
+# Shape and Path Operations
+
+## ConvertShapesToPaths
+
+Converts circles, ellipses, and rectangles to path elements.
+
+```csharp
+builder.ConvertShapesToPaths(precision: 2);
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `precision` | `int` | `3` | Decimal places for coordinate precision |
+
+| Returns | Description |
+|---------|-------------|
+| `SvgQueryBuilder` | The current builder instance for method chaining |
+
+---
+
+## MergePaths
+
+Merges multiple path elements with the same style properties.
+
+```csharp
+builder.MergePaths();
+```
+
+| Returns | Description |
+|---------|-------------|
+| `SvgQueryBuilder` | The current builder instance for method chaining |
+
+---
+
+## MergePathCommands
+
+Optimizes path data by merging consecutive commands of the same type.
+
+```csharp
+builder.MergePathCommands();
+```
+
+| Returns | Description |
+|---------|-------------|
+| `SvgQueryBuilder` | The current builder instance for method chaining |
+
+---
+
+## RoundPathSegments
+
+Rounds path coordinates to reduce file size.
+
+```csharp
+builder.RoundPathSegments(decimalPlaces: 1);
+```
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `decimalPlaces` | `int` | `2` | Number of decimal places to preserve |
+
+| Returns | Description |
+|---------|-------------|
+| `SvgQueryBuilder` | The current builder instance for method chaining |
+
+---
+
+# Cleanup Operations
+
+## RemoveEmptyNodes
+
+Removes nodes that have no content or useful attributes.
+
+```csharp
+builder.RemoveEmptyNodes();
+```
+
+| Returns | Description |
+|---------|-------------|
+| `SvgQueryBuilder` | The current builder instance for method chaining |
+
+---
+
+## RemoveEmptyAttributes
+
+Removes attributes with empty or whitespace-only values.
+
+```csharp
+builder.RemoveEmptyAttributes();
+```
+
+| Returns | Description |
+|---------|-------------|
+| `SvgQueryBuilder` | The current builder instance for method chaining |
+
+---
+
+## RemoveEmptyText
+
+Removes text nodes that contain only whitespace.
+
+```csharp
+builder.RemoveEmptyText();
+```
+
+| Returns | Description |
+|---------|-------------|
+| `SvgQueryBuilder` | The current builder instance for method chaining |
+
+---
+
+## RemoveEmptyContainers
+
+Removes container elements (like groups) that have no children.
+
+```csharp
+builder.RemoveEmptyContainers();
+```
+
+| Returns | Description |
+|---------|-------------|
+| `SvgQueryBuilder` | The current builder instance for method chaining |
+
+---
+
+## CollapseGroups
+
+Removes unnecessary group elements that don't add semantic value.
+
+```csharp
+builder.CollapseGroups();
+```
+
+| Returns | Description |
+|---------|-------------|
+| `SvgQueryBuilder` | The current builder instance for method chaining |
+
+---
+
+## CleanupAttributes
+
+Normalizes and optimizes attribute values (colors, numbers, transforms).
+
+```csharp
+builder.CleanupAttributes();
+```
+
+| Optimizations Applied |
+|----------------------|
+| Simplify colors: `rgb(255,0,0)` → `red` |
+| Round numbers: `1.000` → `1` |
+| Optimize transforms: `translate(0,0)` → removed |
+| Clean coordinate lists: `10, 20, 30` → `10 20 30` |
+
+| Returns | Description |
+|---------|-------------|
+| `SvgQueryBuilder` | The current builder instance for method chaining |
+
+---
+
+# Output Control
+
+## RemoveXmlDeclaration
+
+Removes the XML declaration from the output.
+
+```csharp
+builder.RemoveXmlDeclaration();
+```
+
+| Effect |
+|--------|
+| Removes `<?xml version="1.0" encoding="UTF-8"?>` |
+
+| Returns | Description |
+|---------|-------------|
+| `SvgQueryBuilder` | The current builder instance for method chaining |
+
+---
+
+## RemoveViewBoxAttribute
+
+Removes the viewBox attribute from the root SVG element.
+
+```csharp
+builder.RemoveViewBoxAttribute();
+```
+
+| Returns | Description |
+|---------|-------------|
+| `SvgQueryBuilder` | The current builder instance for method chaining |
+
+---
+
+## CompressOutput
+
+Enables output compression to remove unnecessary whitespace.
+
+```csharp
+builder.CompressOutput();
+```
+
+| Returns | Description |
+|---------|-------------|
+| `SvgQueryBuilder` | The current builder instance for method chaining |
+
+---
+
+# Usage Examples
+
+## Preset Optimization
+
+```csharp
+// Quick optimization for most SVGs
+var result = svg.Query()
+    .DefaultOptimizations()
+    .Build();
+
+// Specialized optimization for icons
+var iconResult = svg.Query()
+    .MonoIconsOptimizations(width: 24, height: 24, decimalPlaces: 1)
+    .Build();
+```
+
+## Custom Optimization Pipeline
+
+```csharp
+var result = svg.Query()
+    .ConvertShapesToPaths(2)           // Convert shapes for consistency
+    .MergePaths()                      // Combine similar paths
+    .MergePathCommands()               // Optimize path data
+    .RoundPathSegments(1)              // Aggressive rounding for web
+    .RemoveEmptyNodes()                // Clean up empty elements
+    .RemoveEmptyAttributes()           // Remove empty attributes
+    .CollapseGroups()                  // Remove unnecessary groups
+    .CleanupAttributes()               // Normalize attributes
+    .RemoveXmlDeclaration()            // Remove XML declaration
+    .CompressOutput()                  // Minify output
+    .Build();
+```
+
+## Selective Cleanup
+
+```csharp
+// Focus on cleanup without path modifications
+var cleanResult = svg.Query()
+    .RemoveEmptyNodes()
+    .RemoveEmptyAttributes()
+    .RemoveEmptyText()
+    .RemoveEmptyContainers()
+    .CollapseGroups()
+    .CleanupAttributes()
+    .Build();
+
+// Focus on path optimization
+var pathResult = svg.Query()
+    .ConvertShapesToPaths()
+    .MergePaths()
+    .MergePathCommands()
+    .RoundPathSegments(2)
+    .Build();
+```

@@ -1,0 +1,62 @@
+---
+title: Simple Optimizations
+description: Quick file size reduction techniques and basic cleanup operations for immediate results.
+---
+
+# Introduction
+
+Quick techniques to reduce SVG file sizes with minimal effort.
+
+# Quick File Size Reduction
+
+```csharp
+using Six.SvgKit;
+using Six.SvgKit.Optimizer;
+
+var svg = Svg.FromFile("unoptimized-icon.svg");
+
+var result = svg.Query()
+    .DefaultOptimizations()
+    .Build();
+
+result.ToFile("optimized-icon.svg");
+
+// Show the improvement
+result.SizeComparisonInPercentage(percentage =>
+    Console.WriteLine($"File size reduced by {percentage:F1}%"));
+```
+
+# Remove Unnecessary Elements
+
+```csharp
+var result = Svg.FromFile("messy.svg")
+    .Query()
+    .RemoveEmptyNodes()          // Remove empty <g></g>, <defs></defs>, etc.
+    .RemoveEmptyAttributes()     // Remove fill="", stroke="", etc.
+    .RemoveEmptyText()           // Remove whitespace-only text nodes
+    .RemoveEmptyContainers()     // Remove groups with no children
+    .CollapseGroups()            // Remove unnecessary nested groups
+    .Build();
+
+result.ToFile("cleaned.svg");
+```
+
+# Compress SVG Output
+
+```csharp
+var svg = Svg.FromFile("input.svg");
+
+// Method 1: Using the extension
+var result = svg.Query()
+    .CompressOutput()
+    .Build();
+
+// Method 2: Using SVG property
+svg.CompressOutput = true;
+string compressed = svg.ToSvg();
+
+// Method 3: Remove XML declaration too
+svg.OmmitXmlDeclaration = true;
+svg.CompressOutput = true;
+string minified = svg.ToSvg();
+```

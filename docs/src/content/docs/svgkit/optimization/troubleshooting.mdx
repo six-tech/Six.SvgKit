@@ -1,0 +1,41 @@
+---
+title: Troubleshooting
+description: Common issues, debugging techniques, and solutions for optimization problems.
+---
+
+# Introduction
+
+Common issues and solutions when working with SVG optimization.
+
+# Common Issues
+
+## Over-optimization
+**Symptom:** Visual quality degraded  
+**Solution:** Reduce decimal place rounding, avoid aggressive path merging
+
+## Processing Errors
+**Symptom:** Exceptions during optimization  
+**Solution:** Validate SVG structure, handle malformed input gracefully
+
+## Unexpected Results
+**Symptom:** Optimized SVG looks different  
+**Solution:** Test individual optimization steps, compare before/after
+
+# Debugging Optimization
+
+Step-by-step optimization with logging:
+
+```csharp
+// Step-by-step optimization with logging
+var svg = Svg.FromFile("problematic.svg");
+
+Console.WriteLine($"Original size: {svg.ToSvg().Length} characters");
+
+var step1 = svg.Query().RemoveEmptyNodes().Build();
+Console.WriteLine($"After removing empty nodes: {step1.ModifiedSvg.ToSvg().Length} characters");
+
+var step2 = step1.ModifiedSvg.Query().CleanupAttributes().Build();
+Console.WriteLine($"After cleanup: {step2.ModifiedSvg.ToSvg().Length} characters");
+
+// Continue step by step to identify issues
+```

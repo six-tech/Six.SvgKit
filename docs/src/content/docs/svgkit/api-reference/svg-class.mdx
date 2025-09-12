@@ -1,0 +1,116 @@
+---
+title: Svg Class
+description: The main entry point for working with SVG documents. Provides static factory methods and instance methods for manipulation.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+# Introduction
+
+The main entry point for working with SVG documents. Provides static factory methods and instance methods for manipulation.
+
+# Static Factory Methods
+
+| Method | Parameters | Returns | Throws | Description |
+|--------|------------|---------|--------|-------------|
+| `FromFile(path)` | `path`: `string` - The path to the SVG file | `Svg` | `FileNotFoundException` - If the file doesn't exist | Creates a new `Svg` instance from a file |
+| `FromString(svgString)` | `svgString`: `string` - The SVG content as a string | `Svg` | - | Creates a new `Svg` instance from an SVG string |
+
+# Properties
+
+| Property | Type | Access | Description |
+|----------|------|--------|-------------|
+| `Metadata` | `SvgMetadata?` | Get/Set | Gets or sets the SVG metadata for identification during batch processing |
+| `OmmitXmlDeclaration` | `bool` | Get/Set | Controls whether to remove the XML declaration from output |
+| `CompressOutput` | `bool` | Get/Set | Controls whether to compress the SVG output by removing whitespace |
+
+# Instance Methods
+
+| Method | Parameters | Returns | Description |
+|--------|------------|---------|-------------|
+| `WithMetadata(metadata)` | `metadata`: `SvgMetadata` - The metadata to associate with this SVG | `Svg` | Sets metadata and returns the current instance for method chaining |
+| `Query()` | *None* | `SvgQueryBuilder` | Creates a new `SvgQueryBuilder` for querying and manipulating the SVG |
+| `Clone()` | *None* | `Svg` | Creates a deep copy of the current SVG instance |
+| `ToSvg(formatting)` | `formatting`: `Formatting` - XML formatting options (default: `Formatting.Indented`) | `string` | Converts the SVG to its string representation |
+| `ToBytes()` | *None* | `byte[]` | Converts the SVG to a UTF-8 byte array |
+| `ToSvgFile(path)` | `path`: `string` - The output file path | `void` | Saves the SVG to a file |
+
+# Method Examples
+
+## Loading SVG Files
+
+```csharp
+// Load SVG from file
+var svg = Svg.FromFile("path/to/icon.svg");
+
+// Load SVG from string
+var svgString = @"<svg xmlns=""http://www.w3.org/2000/svg"" width=""24"" height=""24"">
+    <circle cx=""12"" cy=""12"" r=""10"" fill=""blue"" />
+</svg>";
+var svg = Svg.FromString(svgString);
+```
+
+## Working with Properties
+
+```csharp
+var metadata = new SvgMetadata();
+svg.Metadata = metadata;
+
+svg.OmmitXmlDeclaration = true; // Removes <?xml version="1.0"?>
+svg.CompressOutput = true; // Minifies output
+```
+
+## Method Chaining
+
+```csharp
+var svg = Svg.FromFile("icon.svg")
+    .WithMetadata(new SvgMetadata());
+```
+
+## Querying and Output
+
+```csharp
+var result = svg.Query()
+    .Select(n => n.Name == "circle")
+    .Transform(n => n.SetAttribute("fill", "red"))
+    .Build();
+
+string svgString = svg.ToSvg();
+string minifiedSvg = svg.ToSvg(Formatting.None);
+byte[] svgBytes = svg.ToBytes();
+svg.ToSvgFile("output/optimized-icon.svg");
+```
+
+---
+
+# Usage Examples
+
+## Basic File Operations
+
+```csharp
+// Load, modify, and save
+var svg = Svg.FromFile("input.svg");
+svg.CompressOutput = true;
+svg.OmmitXmlDeclaration = true;
+svg.ToSvgFile("output.svg");
+```
+
+## Method Chaining
+
+```csharp
+var processedSvg = Svg.FromFile("icon.svg")
+    .WithMetadata(new SvgMetadata { Name = "MyIcon" })
+    .Query()
+    .DefaultOptimizations()
+    .Build()
+    .ModifiedSvg;
+```
+
+## Working with Strings
+
+```csharp
+var svgContent = @"<svg>...</svg>";
+var svg = Svg.FromString(svgContent);
+var optimized = svg.ToSvg();
+var bytes = svg.ToBytes();
+```

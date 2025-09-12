@@ -1,7 +1,157 @@
 # AGENTS.md
 
-A comprehensive guide for AI coding agents working with the **Six.SolutionTemplate** repository. This template provides
-the context and instructions needed to help AI agents work effectively on .NET C# projects using this template.
+A comprehensive guide for AI coding agents working with the **Six.SvgKit** library and the **Six.SolutionTemplate** repository. This guide provides the context and instructions needed to help AI agents work effectively on .NET C# projects, specifically with SVG processing and the solution template.
+
+## 🎨 Six.SvgKit Library Overview
+
+**Six.SvgKit** is a comprehensive .NET library for parsing, manipulating, and optimizing SVG files. This section provides essential information for AI agents working with SVG processing tasks.
+
+### Library Architecture
+
+Six.SvgKit consists of two main packages:
+
+- **Six.SvgKit (Core Library)**: SVG parsing, manipulation, and serialization
+- **Six.SvgKit.Optimizer (Extensions)**: Advanced optimization techniques and presets
+
+### Key Classes and Components
+
+#### Core Classes
+- **`Svg`**: Main entry point for working with SVG documents
+  - Factory methods: `Svg.FromFile()`, `Svg.FromString()`
+  - Output methods: `ToSvg()`, `ToBytes()`, `ToSvgFile()`
+  - Properties: `CompressOutput`, `OmmitXmlDeclaration`, `Metadata`
+
+- **`SvgQueryBuilder`**: Fluent API for querying and transforming SVG elements
+  - Selection: `Select()`, `SelectAttributes()`
+  - Transformation: `Transform()`, `Continue()`
+  - Execution: `Build()`
+
+- **`SvgNode`**: Represents elements in the SVG document tree
+  - Properties: `Name`, `Attributes`, `Children`, `Parent`, `TextContent`
+  - Methods: `SetAttribute()`, `RemoveAttribute()`, `Remove()`
+
+- **`SvgResult`**: Contains optimization results and metrics
+  - Properties: `OriginalSvg`, `ModifiedSvg`
+  - Methods: `SizeComparisonInBytes()`, `SizeComparisonInPercentage()`, `ToFile()`
+
+#### Extension Methods (Six.SvgKit.Optimizer)
+
+**Preset Optimizations:**
+- `DefaultOptimizations()`: Comprehensive optimization for most SVGs
+- `MonoIconsOptimizations()`: Specialized optimization for monochromatic icons
+
+**Path Operations:**
+- `ConvertShapesToPaths()`: Convert shapes (circles, rects, ellipses) to paths
+- `MergePaths()`: Combine paths with identical styling
+- `MergePathCommands()`: Optimize path data by merging consecutive commands
+- `RoundPathSegments()`: Round coordinates to reduce file size
+
+**Cleanup Operations:**
+- `RemoveEmptyNodes()`: Remove elements with no content
+- `RemoveEmptyAttributes()`: Remove empty or whitespace-only attributes
+- `RemoveEmptyText()`: Remove whitespace-only text nodes
+- `RemoveEmptyContainers()`: Remove empty container elements
+- `CollapseGroups()`: Remove unnecessary group elements
+- `CleanupAttributes()`: Normalize attribute values (colors, numbers, transforms)
+
+**Output Control:**
+- `RemoveXmlDeclaration()`: Remove XML declaration for web use
+- `RemoveViewBoxAttribute()`: Remove viewBox attribute
+- `CompressOutput()`: Enable output compression
+
+**Format Conversion:**
+- `ToBitmapFile()`: Convert SVG to bitmap formats (PNG, WebP, JPEG, etc.)
+
+### Common Usage Patterns
+
+#### Basic SVG Processing
+```csharp
+// Load, optimize, and save
+var result = Svg.FromFile("input.svg")
+    .Query()
+    .DefaultOptimizations()
+    .Build();
+
+result.ToFile("optimized.svg");
+```
+
+#### Icon Optimization
+```csharp
+// Optimize for icon use
+var result = Svg.FromFile("icon.svg")
+    .Query()
+    .MonoIconsOptimizations(width: 24, height: 24, decimalPlaces: 2)
+    .Build();
+```
+
+#### Batch Processing
+```csharp
+// Process multiple files in parallel
+Parallel.ForEach(svgFiles, file =>
+{
+    var result = Svg.FromFile(file)
+        .Query()
+        .DefaultOptimizations()
+        .Build();
+    
+    result.ToFile(outputPath);
+});
+```
+
+#### Custom Optimization Pipeline
+```csharp
+// Create custom optimization workflow
+var result = svg.Query()
+    .ConvertShapesToPaths(2)
+    .MergePaths()
+    .RoundPathSegments(2)
+    .CleanupAttributes()
+    .CompressOutput()
+    .Build();
+```
+
+### Performance Considerations
+
+- Use parallel processing for batch operations
+- Process files in chunks for memory management
+- Choose appropriate decimal precision for coordinate rounding
+- Use preset optimizations for common scenarios
+
+### Testing and Examples
+
+- **Unit Tests**: Located in `tests/` directory
+- **Examples**: Available in `apps/Six.SvgKit.Examples/`
+- **Sample SVGs**: Test files in `svg/` directory
+- **Documentation**: Comprehensive examples at [six-tech.github.io/Six.SvgKit](https://six-tech.github.io/Six.SvgKit)
+
+### Development Commands for Six.SvgKit
+
+```bash
+# Build the solution
+dotnet build
+
+# Run all tests
+dotnet run scripts/tests-run.cs
+
+# Run tests with coverage
+dotnet run scripts/tests-coverage.cs
+
+# Generate coverage reports
+dotnet run scripts/tests-report.cs
+
+# Package for NuGet
+dotnet run scripts/nuget-pack.cs --prod
+
+# Run examples
+cd apps/Six.SvgKit.Examples
+dotnet run
+```
+
+---
+
+## 🏗️ Six.SolutionTemplate Overview
+
+This repository also serves as an example of the **Six.SolutionTemplate**, a GitHub template repository for creating .NET C# projects with professional tooling, automated workflows, and professional documentation setup.
 
 ## 🏗️ Project Overview
 

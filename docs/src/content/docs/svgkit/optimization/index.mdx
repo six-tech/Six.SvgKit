@@ -1,0 +1,185 @@
+---
+title: SVG Optimization Guide
+description: Learn advanced SVG optimization techniques using Six.SvgKit.Optimizer to reduce file sizes and improve performance.
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+# Overview
+
+Six.SvgKit.Optimizer provides powerful tools for reducing SVG file sizes while maintaining visual quality. This guide covers optimization strategies, techniques, and best practices for different use cases.
+
+# Understanding SVG Optimization
+
+SVG optimization involves removing unnecessary elements, simplifying paths, and normalizing attributes while preserving the visual appearance and functionality of the graphic. The goal is to achieve the smallest possible file size without compromising quality.
+
+## Why Optimize SVGs?
+
+<CardGrid>
+  <Card title="Faster Loading" icon="rocket">
+    Smaller files load faster, improving user experience and Core Web Vitals scores.
+  </Card>
+  
+  <Card title="Reduced Bandwidth" icon="down-caret">
+    Lower file sizes mean less data transfer, especially important for mobile users.
+  </Card>
+  
+  <Card title="Better Performance" icon="star">
+    Optimized SVGs render faster and use less memory in browsers and applications.
+  </Card>
+  
+  <Card title="Storage Savings" icon="open-book">
+    Smaller files require less storage space, reducing hosting costs and backup sizes.
+  </Card>
+</CardGrid>
+
+# Optimization Presets
+
+Six.SvgKit provides ready-made optimization presets for common scenarios.
+
+## Default Optimizations
+
+The `DefaultOptimizations()` method applies a comprehensive set of safe optimizations suitable for most SVGs:
+
+```csharp
+using Six.SvgKit;
+using Six.SvgKit.Optimizer;
+
+var result = Svg.FromFile("input.svg")
+    .Query()
+    .DefaultOptimizations()
+    .Build();
+
+// Save optimized SVG
+result.ToFile("optimized.svg");
+
+// Check the size reduction
+result.SizeComparisonInPercentage(percentage =>
+    Console.WriteLine($"Size reduced by {percentage:F1}%"));
+```
+
+**What DefaultOptimizations includes:**
+- Remove XML declaration
+- Remove empty nodes and attributes
+- Remove empty text and containers
+- Collapse unnecessary groups
+- Clean up attribute values
+- Compress output
+
+## Monochromatic Icons Optimization
+
+For icon sets and simple graphics, use `MonoIconsOptimizations()`:
+
+```csharp
+var result = Svg.FromFile("icon.svg")
+    .Query()
+    .MonoIconsOptimizations(width: 24, height: 24, decimalPlaces: 2)
+    .Build();
+```
+
+**Parameters:**
+- `width`: Target width (default: 24)
+- `height`: Target height (default: 24)  
+- `decimalPlaces`: Coordinate precision (default: 2)
+
+**Additional optimizations for icons:**
+- Convert shapes to paths
+- Merge similar paths
+- Round path coordinates
+- Remove viewBox attribute
+- Set standard fill attributes
+
+# Individual Optimization Techniques
+
+Explore specific optimization techniques to create custom optimization pipelines:
+
+<CardGrid>
+  <Card title="Path Optimization" icon="puzzle">
+    Learn how to convert shapes to paths, merge paths, round coordinates, and optimize path data.
+    
+    [View Path Optimization →](/Six.SvgKit/svgkit/optimization/path-optimization)
+  </Card>
+  
+  <Card title="Cleanup Operations" icon="close">
+    Remove unnecessary elements, attributes, and content that don't contribute to the visual output.
+    
+    [View Cleanup Operations →](/Six.SvgKit/svgkit/optimization/cleanup-operations)
+  </Card>
+  
+  <Card title="Output Control" icon="setting">
+    Control how SVG output is formatted, compressed, and optimized for different use cases.
+    
+    [View Output Control →](/Six.SvgKit/svgkit/optimization/output-control)
+  </Card>
+</CardGrid>
+
+# Advanced Topics
+
+<CardGrid>
+  <Card title="Advanced Strategies" icon="star">
+    Custom optimization pipelines, conditional processing, and batch optimization techniques.
+    
+    [View Advanced Strategies →](/Six.SvgKit/svgkit/optimization/advanced-strategies)
+  </Card>
+  
+  <Card title="Best Practices" icon="approve-check">
+    Guidelines for choosing the right optimization approach and testing results.
+    
+    [View Best Practices →](/Six.SvgKit/svgkit/optimization/best-practices)
+  </Card>
+  
+  <Card title="Performance Considerations" icon="rocket">
+    Memory usage, processing speed optimization, and performance tips for large-scale operations.
+    
+    [View Performance →](/Six.SvgKit/svgkit/optimization/performance)
+  </Card>
+  
+  <Card title="Troubleshooting" icon="warning">
+    Common issues, debugging techniques, and solutions for optimization problems.
+    
+    [View Troubleshooting →](/Six.SvgKit/svgkit/optimization/troubleshooting)
+  </Card>
+</CardGrid>
+
+# Quick Start Examples
+
+## Basic Optimization
+
+```csharp
+// Quick optimization for most SVGs
+var result = Svg.FromFile("input.svg")
+    .Query()
+    .DefaultOptimizations()
+    .Build();
+
+result.SizeComparisonInPercentage(p => Console.WriteLine($"Reduced by {p:F1}%"));
+result.ToFile("optimized.svg");
+```
+
+## Icon Optimization
+
+```csharp
+// Specialized optimization for icons
+var result = Svg.FromFile("icon.svg")
+    .Query()
+    .MonoIconsOptimizations(width: 32, height: 32, decimalPlaces: 1)
+    .Build();
+
+result.ToFile("optimized-icon.svg");
+```
+
+## Custom Pipeline
+
+```csharp
+// Custom optimization pipeline
+var result = Svg.FromFile("complex.svg")
+    .Query()
+    .ConvertShapesToPaths()
+    .MergePaths()
+    .CleanupAttributes()
+    .RemoveEmptyNodes()
+    .CompressOutput()
+    .Build();
+```
+
+Ready to dive deeper? Explore the individual optimization techniques to learn how to create powerful custom optimization workflows.

@@ -3,13 +3,13 @@ title: API Reference
 description: Complete API reference for Six.SvgKit classes, methods, and extension methods with code examples and usage patterns.
 ---
 
-import { Tabs, TabItem, Code } from '@astrojs/starlight/components';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 # API Reference
 
 This comprehensive reference covers all public classes, methods, and extension methods available in Six.SvgKit and Six.SvgKit.Optimizer packages.
 
-## Core Classes
+# Core Classes
 
 ### Svg Class
 
@@ -163,7 +163,7 @@ A fluent API for querying and transforming SVG elements with method chaining sup
 
 #### Selection Methods
 
-##### `Select(Func<SvgNode, bool> predicate)`
+##### `Select(Func&lt;SvgNode, bool&gt; predicate)`
 
 Selects nodes that match the specified predicate.
 
@@ -174,11 +174,11 @@ var builder = svg.Query()
 ```
 
 **Parameters:**
-- `predicate` (Func<SvgNode, bool>): Function to test each node
+- `predicate` (Func&lt;SvgNode, bool&gt;): Function to test each node
 
 **Returns:** `SvgQueryBuilder` - The current builder instance
 
-##### `SelectAttributes(Func<string, bool> keyPredicate, Action<SvgNode, string, string> action)`
+##### `SelectAttributes(Func&lt;string, bool&gt; keyPredicate, Action&lt;SvgNode, string, string&gt; action)`
 
 Selects and processes attributes matching the key predicate.
 
@@ -190,14 +190,14 @@ builder.SelectAttributes(
 ```
 
 **Parameters:**
-- `keyPredicate` (Func<string, bool>): Function to test attribute keys
-- `action` (Action<SvgNode, string, string>): Action to perform on matching attributes
+- `keyPredicate` (Func&lt;string, bool&gt;): Function to test attribute keys
+- `action` (Action&lt;SvgNode, string, string&gt;): Action to perform on matching attributes
 
 **Returns:** `SvgQueryBuilder` - The current builder instance
 
 #### Transformation Methods
 
-##### `Transform(Action<SvgNode> action)`
+##### `Transform(Action&lt;SvgNode&gt; action)`
 
 Applies a transformation to selected nodes.
 
@@ -210,7 +210,7 @@ builder.Select(n => n.Name == "rect")
 ```
 
 **Parameters:**
-- `action` (Action<SvgNode>): Transformation to apply to each selected node
+- `action` (Action&lt;SvgNode&gt;): Transformation to apply to each selected node
 
 **Returns:** `SvgQueryBuilder` - The current builder instance
 
@@ -284,10 +284,10 @@ SvgNode? parentNode = node.Parent;
 Gets the list of child nodes.
 
 ```csharp
-List<SvgNode> childNodes = node.Children;
+List&lt;SvgNode&gt; childNodes = node.Children;
 ```
 
-**Type:** `List<SvgNode>`
+**Type:** `List&lt;SvgNode&gt;`
 
 ##### `Name`
 
@@ -403,7 +403,7 @@ string optimizedSvg = result.ModifiedSvg.ToSvg();
 
 #### Methods
 
-##### `SizeComparisonInBytes(Action<int, int> callback)`
+##### `SizeComparisonInBytes(Action&lt;int, int&gt; callback)`
 
 Compares file sizes in bytes and executes a callback.
 
@@ -414,11 +414,11 @@ result.SizeComparisonInBytes((before, after) => {
 ```
 
 **Parameters:**
-- `callback` (Action<int, int>): Callback with original and modified sizes
+- `callback` (Action&lt;int, int&gt;): Callback with original and modified sizes
 
 **Returns:** `SvgResult` - The current result instance
 
-##### `SizeComparisonInPercentage(Action<double> callback)`
+##### `SizeComparisonInPercentage(Action&lt;double&gt; callback)`
 
 Calculates size reduction percentage and executes a callback.
 
@@ -429,7 +429,7 @@ result.SizeComparisonInPercentage(percentage => {
 ```
 
 **Parameters:**
-- `callback` (Action<double>): Callback with the reduction percentage
+- `callback` (Action&lt;double&gt;): Callback with the reduction percentage
 
 **Returns:** `SvgResult` - The current result instance
 
@@ -444,7 +444,7 @@ result.ToFile("optimized-output.svg");
 **Parameters:**
 - `path` (string): The output file path
 
-## Extension Methods (Six.SvgKit.Optimizer)
+# Extension Methods (Six.SvgKit.Optimizer)
 
 The optimizer package provides numerous extension methods for the `SvgQueryBuilder` class.
 
@@ -606,7 +606,7 @@ Enables output compression to remove unnecessary whitespace.
 builder.CompressOutput();
 ```
 
-## Format Conversion Extensions
+# Format Conversion Extensions
 
 ### Bitmap Conversion
 
@@ -627,7 +627,7 @@ svg.ToBitmapFile(MagickFormat.WebP, "icon.webp", 128, 128);
 
 **Supported formats:** PNG, WebP, JPEG, BMP, TIFF, and more
 
-## Usage Patterns
+# Usage Patterns
 
 ### Chaining Operations
 
@@ -687,4 +687,4 @@ Parallel.ForEach(files, file =>
 });
 ```
 
-This completes the comprehensive API reference for Six.SvgKit. For practical examples and common scenarios, see the [Examples](/svgkit/examples) section.
+This completes the comprehensive API reference for Six.SvgKit. For practical examples and common scenarios, see the [Examples](/Six.SvgKit/svgkit/examples) section.

@@ -1,0 +1,126 @@
+---
+title: Integration Examples
+description: Real-world integration patterns for ASP.NET Core, build scripts, and other development workflows.
+---
+
+# Introduction
+
+Real-world integration patterns for incorporating Six.SvgKit into your applications and workflows.
+
+# ASP.NET Core Integration
+
+```csharp
+using Microsoft.AspNetCore.Mvc;
+using Six.SvgKit;
+using Six.SvgKit.Optimizer;
+
+[ApiController]
+[Route("api/[controller]")]
+public class SvgController : ControllerBase
+{
+    [HttpPost("optimize")]
+    public async Task<IActionResult> OptimizeSvg([FromBody] string svgContent)
+    {
+        try
+        {
+            var result = Svg.FromString(svgContent)
+                .Query()
+                .DefaultOptimizations()
+                .Build();
+            
+            var response = new
+            {
+                OriginalSize = svgContent.Length,
+                OptimizedSvg = result.ModifiedSvg.ToSvg(),
+                OptimizedSize = result.ModifiedSvg.ToSvg().Length
+            };
+            
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Error optimizing SVG: {ex.Message}");
+        }
+    }
+    
+    [HttpPost("convert")]
+    public async Task<IActionResult> ConvertToPng([FromBody] string svgContent, [FromQuery] int size = 256)
+    {
+        try
+        {
+            var svg = Svg.FromString(svgContent);
+            
+            using var memoryStream = new MemoryStream();
+            // Note: This is a simplified example. In practice, you'd need to implement
+            // the bitmap conversion to return bytes directly
+            
+            return File(memoryStream.ToArray(), "image/png", "converted.png");
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Error converting SVG: {ex.Message}");
+        }
+    }
+}
+```
+
+# Build Script Integration
+
+```csharp
+using Six.SvgKit;
+using Six.SvgKit.Optimizer;
+
+// Build script for optimizing SVGs during build process
+public static class BuildSvgOptimizer
+{
+    public static void OptimizeProjectSvgs(string projectRoot)
+    {
+        var svgDirs = new[]
+        {
+            Path.Combine(projectRoot, "wwwroot", "icons"),
+            Path.Combine(projectRoot, "Assets", "Images"),
+            Path.Combine(projectRoot, "Content", "svg")
+        };
+        
+        foreach (var dir in svgDirs.Where(Directory.Exists))
+        {
+            var outputDir = Path.Combine(dir, "optimized");
+            Directory.CreateDirectory(outputDir);
+            
+            ProcessSvgDirectory(dir, outputDir);
+        }
+    }
+    
+    private static void ProcessSvgDirectory(string inputDir, string outputDir)
+    {
+        var files = Directory.GetFiles(inputDir, "*.svg", SearchOption.TopDirectoryOnly);
+        
+        Console.WriteLine($"Optimizing {files.Length} SVG files in {inputDir}");
+        
+        var totalSavings = 0;
+        
+        foreach (var file in files)
+        {
+            var result = Svg.FromFile(file)
+                .Query()
+                .DefaultOptimizations()
+                .Build();
+            
+            var outputPath = Path.Combine(outputDir, Path.GetFileName(file));
+            result.ToFile(outputPath);
+            
+            result.SizeComparisonInBytes((before, after) =>
+            {
+                var savings = before - after;
+                totalSavings += savings;
+                Console.WriteLine($"  {Path.GetFileName(file)}: {savings} bytes saved");
+            });
+        }
+        
+        Console.WriteLine($"Total savings: {totalSavings} bytes");
+    }
+}
+
+// Usage in build script
+BuildSvgOptimizer.OptimizeProjectSvgs(Environment.CurrentDirectory);
+```

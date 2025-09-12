@@ -1,0 +1,58 @@
+---
+title: Performance Considerations
+description: Memory usage, processing speed optimization, and performance tips for large-scale operations.
+---
+
+# Introduction
+
+Optimize Six.SvgKit performance for large-scale operations and memory-constrained environments.
+
+# Memory Usage
+
+For large batch operations, consider memory management:
+
+```csharp
+// Process files in chunks to manage memory
+var files = Directory.GetFiles(inputDir, "*.svg");
+var chunkSize = 100;
+
+for (int i = 0; i < files.Length; i += chunkSize)
+{
+    var chunk = files.Skip(i).Take(chunkSize);
+    
+    Parallel.ForEach(chunk, file =>
+    {
+        // Process file and dispose resources
+        using var result = ProcessSvgFile(file);
+        // Resources automatically disposed
+    });
+    
+    // Force garbage collection between chunks
+    GC.Collect();
+    GC.WaitForPendingFinalizers();
+}
+```
+
+# Processing Speed
+
+Optimize for speed when processing large numbers of files:
+
+```csharp
+// Use compiled regex for better performance
+var optimizedBuilder = svg.Query()
+    .CleanupAttributes()  // Uses compiled regex internally
+    .CompressOutput()     // Fast string operations
+    .Build();
+
+// Avoid expensive operations for simple cases
+if (svg.ToSvg().Length < 1000)
+{
+    // Use lighter optimization for small files
+    builder.RemoveEmptyAttributes().CompressOutput();
+}
+else
+{
+    // Full optimization for larger files
+    builder.DefaultOptimizations();
+}
+```

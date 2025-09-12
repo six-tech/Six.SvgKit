@@ -1,0 +1,217 @@
+---
+title: SvgResult Class
+description: Contains the results of SVG query operations and optimization metrics.
+---
+
+# Introduction
+
+Contains the results of SVG query operations and optimization metrics.
+
+# Properties
+
+## OriginalSvg
+
+Gets the original SVG before modifications.
+
+```csharp
+Svg original = result.OriginalSvg;
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `OriginalSvg` | `Svg` | The SVG instance before any modifications |
+
+---
+
+## ModifiedSvg
+
+Gets the modified SVG after operations.
+
+```csharp
+Svg modified = result.ModifiedSvg;
+string optimizedSvg = result.ModifiedSvg.ToSvg();
+```
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `ModifiedSvg` | `Svg` | The SVG instance after applying operations |
+
+---
+
+# Methods
+
+## SizeComparisonInBytes
+
+Compares file sizes in bytes and executes a callback.
+
+```csharp
+result.SizeComparisonInBytes((before, after) => {
+    Console.WriteLine($"Size reduced from {before} to {after} bytes");
+});
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `callback` | `Action<int, int>` | Callback with original and modified sizes |
+
+| Returns | Description |
+|---------|-------------|
+| `SvgResult` | The current result instance for method chaining |
+
+---
+
+## SizeComparisonInPercentage
+
+Calculates size reduction percentage and executes a callback.
+
+```csharp
+result.SizeComparisonInPercentage(percentage => {
+    Console.WriteLine($"Size reduced by {percentage:F1}%");
+});
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `callback` | `Action<double>` | Callback with the reduction percentage |
+
+| Returns | Description |
+|---------|-------------|
+| `SvgResult` | The current result instance for method chaining |
+
+---
+
+## ToFile
+
+Saves the modified SVG to a file.
+
+```csharp
+result.ToFile("optimized-output.svg");
+```
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `path` | `string` | The output file path |
+
+---
+
+# Usage Examples
+
+## Basic Size Comparison
+
+```csharp
+var result = svg.Query()
+    .DefaultOptimizations()
+    .Build();
+
+// Check size reduction in bytes
+result.SizeComparisonInBytes((before, after) => {
+    int saved = before - after;
+    Console.WriteLine($"Saved {saved} bytes ({before} → {after})");
+});
+
+// Check size reduction as percentage
+result.SizeComparisonInPercentage(percentage => {
+    Console.WriteLine($"File size reduced by {percentage:F2}%");
+});
+```
+
+## Chaining Operations
+
+```csharp
+var result = svg.Query()
+    .MonoIconsOptimizations()
+    .Build()
+    .SizeComparisonInPercentage(p => Console.WriteLine($"Optimized by {p:F1}%"))
+    .SizeComparisonInBytes((before, after) => {
+        if (after < before * 0.5) {
+            Console.WriteLine("Great optimization! More than 50% reduction.");
+        }
+    });
+
+// Save the result
+result.ToFile("optimized-icon.svg");
+```
+
+## Working with Both Versions
+
+```csharp
+var result = svg.Query()
+    .CleanupAttributes()
+    .RemoveEmptyNodes()
+    .Build();
+
+// Access original
+var originalContent = result.OriginalSvg.ToSvg();
+var originalSize = originalContent.Length;
+
+// Access modified
+var modifiedContent = result.ModifiedSvg.ToSvg();
+var modifiedSize = modifiedContent.Length;
+
+// Manual comparison
+var reduction = ((double)(originalSize - modifiedSize) / originalSize) * 100;
+Console.WriteLine($"Manual calculation: {reduction:F1}% reduction");
+
+// Save both for comparison
+result.OriginalSvg.ToSvgFile("original.svg");
+result.ModifiedSvg.ToSvgFile("modified.svg");
+```
+
+## Conditional Processing Based on Results
+
+```csharp
+var result = svg.Query()
+    .DefaultOptimizations()
+    .Build();
+
+result.SizeComparisonInPercentage(percentage => {
+    if (percentage > 30)
+    {
+        Console.WriteLine("Excellent optimization results!");
+        result.ToFile("highly-optimized.svg");
+    }
+    else if (percentage > 10)
+    {
+        Console.WriteLine("Good optimization results.");
+        result.ToFile("optimized.svg");
+    }
+    else
+    {
+        Console.WriteLine("Minimal optimization. Consider different techniques.");
+        // Maybe try more aggressive optimization
+        var aggressiveResult = result.ModifiedSvg.Query()
+            .MonoIconsOptimizations()
+            .Build();
+        
+        aggressiveResult.ToFile("aggressive-optimized.svg");
+    }
+});
+```
+
+## Batch Processing with Results
+
+```csharp
+var files = Directory.GetFiles("input", "*.svg");
+var totalSavings = 0;
+var processedCount = 0;
+
+foreach (var file in files)
+{
+    var result = Svg.FromFile(file)
+        .Query()
+        .DefaultOptimizations()
+        .Build();
+    
+    result.SizeComparisonInBytes((before, after) => {
+        totalSavings += (before - after);
+        processedCount++;
+        
+        var outputPath = Path.Combine("output", Path.GetFileName(file));
+        result.ToFile(outputPath);
+    });
+}
+
+Console.WriteLine($"Processed {processedCount} files");
+Console.WriteLine($"Total bytes saved: {totalSavings:N0}");
+Console.WriteLine($"Average savings per file: {totalSavings / processedCount:N0} bytes");
+```

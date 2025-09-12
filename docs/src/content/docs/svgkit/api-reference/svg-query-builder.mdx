@@ -1,0 +1,129 @@
+---
+title: SvgQueryBuilder Class
+description: A fluent API for querying and transforming SVG elements with method chaining support.
+---
+
+# Introduction
+
+A fluent API for querying and transforming SVG elements with method chaining support.
+
+# Methods
+
+| Method | Parameters | Returns | Description |
+|--------|------------|---------|-------------|
+| **Selection Methods** | | | |
+| `Select(predicate)` | `predicate`: `Func<SvgNode, bool>` - Function to test each node | `SvgQueryBuilder` | Selects nodes that match the specified predicate |
+| `SelectAttributes(keyPredicate, action)` | `keyPredicate`: `Func<string, bool>` - Function to test attribute keys<br/>`action`: `Action<SvgNode, string, string>` - Action to perform on matching attributes | `SvgQueryBuilder` | Selects and processes attributes matching the key predicate |
+| **Transformation Methods** | | | |
+| `Transform(action)` | `action`: `Action<SvgNode>` - Transformation to apply to each selected node | `SvgQueryBuilder` | Applies a transformation to selected nodes |
+| `Continue()` | *None* | `SvgQueryBuilder` | Continues the query chain, typically used after operations that modify the document structure |
+| **Execution Methods** | | | |
+| `Build()` | *None* | `SvgResult` | Executes the query and returns the results |
+
+# Method Examples
+
+## Select Nodes
+
+```csharp
+var builder = svg.Query()
+    .Select(n => n.Name == "path")
+    .Select(n => n.Attributes.ContainsKey("fill"));
+```
+
+## Process Attributes
+
+```csharp
+builder.SelectAttributes(
+    key => key.StartsWith("data-"),
+    (node, key, value) => node.RemoveAttribute(key)
+);
+```
+
+## Transform Elements
+
+```csharp
+builder.Select(n => n.Name == "rect")
+    .Transform(n => {
+        n.SetAttribute("rx", "5");
+        n.SetAttribute("ry", "5");
+    });
+```
+
+## Chain Operations
+
+```csharp
+var result = svg.Query()
+    .RemoveEmptyNodes()
+    .Continue()
+    .Select(n => n.Name == "g")
+    .Build();
+```
+
+---
+
+# Usage Examples
+
+## Basic Node Selection
+
+```csharp
+// Select all path elements
+var result = svg.Query()
+    .Select(n => n.Name == "path")
+    .Build();
+
+// Select nodes with specific attributes
+var result = svg.Query()
+    .Select(n => n.Attributes.ContainsKey("fill"))
+    .Select(n => n.Attributes["fill"] == "red")
+    .Build();
+```
+
+## Complex Transformations
+
+```csharp
+// Change all circles to have a red stroke
+var result = svg.Query()
+    .Select(n => n.Name == "circle")
+    .Transform(n => {
+        n.SetAttribute("stroke", "red");
+        n.SetAttribute("stroke-width", "2");
+        n.SetAttribute("fill", "none");
+    })
+    .Build();
+```
+
+## Attribute Processing
+
+```csharp
+// Remove all data attributes
+var result = svg.Query()
+    .SelectAttributes(
+        key => key.StartsWith("data-"),
+        (node, key, value) => node.RemoveAttribute(key)
+    )
+    .Build();
+
+// Normalize color attributes
+var result = svg.Query()
+    .SelectAttributes(
+        key => key == "fill" || key == "stroke",
+        (node, key, value) => {
+            if (value == "#000000") {
+                node.SetAttribute(key, "black");
+            }
+        }
+    )
+    .Build();
+```
+
+## Chaining Operations
+
+```csharp
+var result = svg.Query()
+    .Select(n => n.Name == "g" && !n.Children.Any())
+    .Transform(n => n.Remove())
+    .Continue()
+    .Select(n => n.Name == "path")
+    .Transform(n => n.SetAttribute("vector-effect", "non-scaling-stroke"))
+    .Build();
+```

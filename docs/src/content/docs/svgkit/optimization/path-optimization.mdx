@@ -1,0 +1,315 @@
+---
+title: Path Optimization
+description: Learn how to convert shapes to paths, merge paths, round coordinates, and optimize path data for smaller file sizes.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+# Introduction
+
+Path optimization techniques focus on converting basic shapes to paths and optimizing path data to reduce file size while maintaining visual accuracy.
+
+# Convert Shapes to Paths
+
+Converting basic shapes (circles, rectangles, ellipses) to paths enables further optimizations:
+
+```csharp
+svg.Query()
+    .ConvertShapesToPaths(precision: 3)
+    .Build();
+```
+
+## Before and After
+
+<Tabs>
+  <TabItem label="Before">
+    ```xml
+    <circle cx="50" cy="50" r="25" fill="blue"/>
+    <rect x="10" y="10" width="30" height="20" fill="red"/>
+    ```
+  </TabItem>
+  
+  <TabItem label="After">
+    ```xml
+    <path d="M75,50 A25,25 0 1,1 25,50 A25,25 0 1,1 75,50 Z" fill="blue"/>
+    <path d="M10,10 L40,10 L40,30 L10,30 Z" fill="red"/>
+    ```
+  </TabItem>
+</Tabs>
+
+## Usage
+
+```csharp
+// Convert with default precision (3 decimal places)
+svg.Query().ConvertShapesToPaths().Build();
+
+// Convert with custom precision
+svg.Query().ConvertShapesToPaths(precision: 2).Build();
+
+// Higher precision for print quality
+svg.Query().ConvertShapesToPaths(precision: 4).Build();
+```
+
+## Benefits
+
+- Enables path merging and optimization
+- Consistent path-based representation
+- Better compression in some cases
+- Simplified document structure
+
+---
+
+# Merge Paths
+
+Combine multiple paths with the same styling:
+
+```csharp
+svg.Query()
+    .MergePaths()
+    .Build();
+```
+
+## Before and After
+
+<Tabs>
+  <TabItem label="Before">
+    ```xml
+    <path d="M10,10 L20,10 L20,20 Z" fill="black"/>
+    <path d="M30,10 L40,10 L40,20 Z" fill="black"/>
+    ```
+  </TabItem>
+  
+  <TabItem label="After">
+    ```xml
+    <path d="M10,10 L20,10 L20,20 Z M30,10 L40,10 L40,20 Z" fill="black"/>
+    ```
+  </TabItem>
+</Tabs>
+
+## How It Works
+
+The method groups paths by their style attributes (fill, stroke, etc.) and combines paths with identical styling into single path elements.
+
+```csharp
+// Merge paths with same styling
+var result = svg.Query()
+    .MergePaths()
+    .Build();
+
+// Often combined with shape conversion
+var result = svg.Query()
+    .ConvertShapesToPaths()
+    .MergePaths()
+    .Build();
+```
+
+---
+
+# Round Path Coordinates
+
+Reduce precision to decrease file size:
+
+```csharp
+svg.Query()
+    .RoundPathSegments(decimalPlaces: 2)
+    .Build();
+```
+
+## Before and After
+
+<Tabs>
+  <TabItem label="Before">
+    ```xml
+    <path d="M10.123456,15.789012 L25.456789,30.123456"/>
+    ```
+  </TabItem>
+  
+  <TabItem label="After">
+    ```xml
+    <path d="M10.12,15.79 L25.46,30.12"/>
+    ```
+  </TabItem>
+</Tabs>
+
+## Precision Guidelines
+
+| Use Case | Decimal Places | Description |
+|----------|----------------|-------------|
+| Web Icons | 1 | Aggressive rounding for small file sizes |
+| General Web | 2 | Good balance of quality and size |
+| Print/High-DPI | 3-4 | Maintain quality for high-resolution output |
+
+```csharp
+// Web-optimized (aggressive)
+svg.Query().RoundPathSegments(1).Build();
+
+// Balanced (recommended)
+svg.Query().RoundPathSegments(2).Build();
+
+// High-quality
+svg.Query().RoundPathSegments(3).Build();
+```
+
+---
+
+# Merge Path Commands
+
+Optimize path data by combining consecutive commands:
+
+```csharp
+svg.Query()
+    .MergePathCommands()
+    .Build();
+```
+
+## Before and After
+
+<Tabs>
+  <TabItem label="Before">
+    ```xml
+    <path d="M10,10 L20,10 L30,10 L40,10"/>
+    ```
+  </TabItem>
+  
+  <TabItem label="After">
+    ```xml
+    <path d="M10,10 H40"/>
+    ```
+  </TabItem>
+</Tabs>
+
+## Optimization Types
+
+The method performs several optimizations:
+
+- **Consecutive line commands**: `L20,10 L30,10 L40,10` → `H40`
+- **Redundant move commands**: Removes unnecessary move operations
+- **Relative vs absolute**: Uses shorter notation
+- **Command simplification**: Uses specialized commands (H, V) when possible
+
+```csharp
+// Combine with other path optimizations
+var result = svg.Query()
+    .ConvertShapesToPaths()
+    .MergePaths()
+    .MergePathCommands()
+    .RoundPathSegments(2)
+    .Build();
+```
+
+---
+
+# Complete Path Optimization Pipeline
+
+Here's a comprehensive path optimization workflow:
+
+```csharp
+public static SvgResult OptimizePaths(Svg svg, int precision = 2)
+{
+    return svg.Query()
+        .ConvertShapesToPaths(precision)     // Convert shapes to paths
+        .MergePaths()                        // Combine similar paths
+        .MergePathCommands()                 // Optimize path data
+        .RoundPathSegments(precision)        // Round coordinates
+        .Build();
+}
+
+// Usage
+var result = OptimizePaths(svg, precision: 2);
+result.SizeComparisonInPercentage(p => 
+    Console.WriteLine($"Path optimization saved {p:F1}%"));
+```
+
+# Advanced Path Techniques
+
+## Conditional Path Optimization
+
+```csharp
+var builder = svg.Query();
+
+// Count shapes that could be converted
+var shapeCount = svg.Query()
+    .Select(n => n.Name == "circle" || n.Name == "rect" || n.Name == "ellipse")
+    .ToList()
+    .Count;
+
+if (shapeCount > 5)
+{
+    // Many shapes - convert and merge
+    builder.ConvertShapesToPaths().MergePaths();
+}
+
+// Always optimize existing paths
+builder.MergePathCommands().RoundPathSegments(2);
+
+var result = builder.Build();
+```
+
+## Path Analysis
+
+```csharp
+public static void AnalyzePaths(Svg svg)
+{
+    var nodes = svg.Query().Select(_ => true).ToList();
+    
+    var pathCount = nodes.Count(n => n.Name == "path");
+    var shapeCount = nodes.Count(n => n.Name == "circle" || n.Name == "rect" || n.Name == "ellipse");
+    
+    Console.WriteLine($"Paths: {pathCount}, Shapes: {shapeCount}");
+    
+    if (shapeCount > pathCount)
+    {
+        Console.WriteLine("Consider converting shapes to paths for better optimization");
+    }
+}
+```
+
+## Progressive Path Optimization
+
+```csharp
+public static void ProgressiveOptimization(string inputPath, string outputDir)
+{
+    var svg = Svg.FromFile(inputPath);
+    
+    // Stage 1: Convert shapes
+    var stage1 = svg.Query()
+        .ConvertShapesToPaths()
+        .Build();
+    
+    stage1.ModifiedSvg.ToSvgFile(Path.Combine(outputDir, "01-shapes-converted.svg"));
+    
+    // Stage 2: Merge paths
+    var stage2 = stage1.ModifiedSvg.Query()
+        .MergePaths()
+        .Build();
+    
+    stage2.ModifiedSvg.ToSvgFile(Path.Combine(outputDir, "02-paths-merged.svg"));
+    
+    // Stage 3: Optimize commands
+    var stage3 = stage2.ModifiedSvg.Query()
+        .MergePathCommands()
+        .Build();
+    
+    stage3.ModifiedSvg.ToSvgFile(Path.Combine(outputDir, "03-commands-optimized.svg"));
+    
+    // Stage 4: Round coordinates
+    var stage4 = stage3.ModifiedSvg.Query()
+        .RoundPathSegments(2)
+        .Build();
+    
+    stage4.ModifiedSvg.ToSvgFile(Path.Combine(outputDir, "04-final-optimized.svg"));
+    
+    // Show cumulative results
+    var totalResult = svg.Query()
+        .ConvertShapesToPaths()
+        .MergePaths()
+        .MergePathCommands()
+        .RoundPathSegments(2)
+        .Build();
+    
+    totalResult.SizeComparisonInPercentage(p =>
+        Console.WriteLine($"Total path optimization: {p:F1}% reduction"));
+}
+```
+
+Path optimization is often the most effective way to reduce SVG file sizes, especially for graphics with many shapes or complex path data.

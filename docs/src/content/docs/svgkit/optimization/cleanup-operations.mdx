@@ -1,0 +1,366 @@
+---
+title: Cleanup Operations
+description: Remove unnecessary elements, attributes, and content that don't contribute to the visual output.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+# Introduction
+
+Cleanup operations remove unnecessary elements, attributes, and content that don't contribute to the visual output, resulting in cleaner and smaller SVG files.
+
+# Remove Empty Elements
+
+## Remove Empty Nodes
+
+Clean up elements that don't contribute to the visual output:
+
+```csharp
+svg.Query()
+    .RemoveEmptyNodes()
+    .Build();
+```
+
+**Examples of removed elements:**
+- `<g></g>` - Empty groups
+- `<defs></defs>` - Empty definitions
+- `<metadata></metadata>` - Empty metadata
+- Self-closing elements with no useful attributes
+
+<Tabs>
+  <TabItem label="Before">
+    ```xml
+    <svg>
+      <defs></defs>
+      <g>
+        <path d="M10,10 L20,20"/>
+      </g>
+      <g></g>
+      <metadata></metadata>
+    </svg>
+    ```
+  </TabItem>
+  
+  <TabItem label="After">
+    ```xml
+    <svg>
+      <g>
+        <path d="M10,10 L20,20"/>
+      </g>
+    </svg>
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+## Remove Empty Attributes
+
+Removes attributes with empty or whitespace-only values:
+
+```csharp
+svg.Query()
+    .RemoveEmptyAttributes()
+    .Build();
+```
+
+**Examples of removed attributes:**
+- `fill=""` - Empty fill attribute
+- `stroke="   "` - Whitespace-only stroke
+- `class=""` - Empty class attribute
+- `id=""` - Empty ID attribute
+
+<Tabs>
+  <TabItem label="Before">
+    ```xml
+    <path d="M10,10 L20,20" fill="" stroke="   " class="" id="valid-id"/>
+    ```
+  </TabItem>
+  
+  <TabItem label="After">
+    ```xml
+    <path d="M10,10 L20,20" id="valid-id"/>
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+## Remove Empty Text
+
+Removes text nodes that contain only whitespace:
+
+```csharp
+svg.Query()
+    .RemoveEmptyText()
+    .Build();
+```
+
+<Tabs>
+  <TabItem label="Before">
+    ```xml
+    <text>   </text>
+    <text>
+    
+    </text>
+    <text>Valid content</text>
+    ```
+  </TabItem>
+  
+  <TabItem label="After">
+    ```xml
+    <text>Valid content</text>
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+## Remove Empty Containers
+
+Removes container elements (like groups) that have no children:
+
+```csharp
+svg.Query()
+    .RemoveEmptyContainers()
+    .Build();
+```
+
+**Removed containers:**
+- Empty `<g>` elements
+- Empty `<svg>` elements (nested)
+- Empty `<defs>` elements
+- Empty `<clipPath>` elements
+
+<Tabs>
+  <TabItem label="Before">
+    ```xml
+    <svg>
+      <g id="layer1">
+        <path d="M10,10 L20,20"/>
+      </g>
+      <g id="empty-layer"></g>
+      <defs></defs>
+    </svg>
+    ```
+  </TabItem>
+  
+  <TabItem label="After">
+    ```xml
+    <svg>
+      <g id="layer1">
+        <path d="M10,10 L20,20"/>
+      </g>
+    </svg>
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+# Structure Optimization
+
+## Collapse Groups
+
+Remove unnecessary group elements that don't add semantic value:
+
+```csharp
+svg.Query()
+    .CollapseGroups()
+    .Build();
+```
+
+**Groups that get collapsed:**
+- Groups with only one child and no unique attributes
+- Nested groups that can be flattened
+- Groups that only provide redundant styling
+
+<Tabs>
+  <TabItem label="Before">
+    ```xml
+    <g>
+      <g>
+        <path d="M10,10 L20,20"/>
+      </g>
+    </g>
+    <g transform="translate(0,0)">
+      <rect x="10" y="10" width="20" height="20"/>
+    </g>
+    ```
+  </TabItem>
+  
+  <TabItem label="After">
+    ```xml
+    <path d="M10,10 L20,20"/>
+    <rect x="10" y="10" width="20" height="20"/>
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+# Attribute Cleanup
+
+## Cleanup Attributes
+
+Normalizes and optimizes attribute values:
+
+```csharp
+svg.Query()
+    .CleanupAttributes()
+    .Build();
+```
+
+### Color Optimization
+
+| Before | After | Description |
+|--------|-------|-------------|
+| `rgb(255,0,0)` | `red` | Named color conversion |
+| `#FF0000` | `red` | Hex to named color |
+| `rgb(0,0,0)` | `black` | Common color names |
+
+### Number Optimization
+
+| Before | After | Description |
+|--------|-------|-------------|
+| `1.000` | `1` | Remove trailing zeros |
+| `0.500` | `.5` | Remove leading zero |
+| `10.00000` | `10` | Simplify whole numbers |
+
+### Transform Optimization
+
+| Before | After | Description |
+|--------|-------|-------------|
+| `translate(0,0)` | *removed* | Identity transforms |
+| `scale(1,1)` | *removed* | No-op transforms |
+| `rotate(0)` | *removed* | Zero rotation |
+
+### Coordinate List Cleanup
+
+| Before | After | Description |
+|--------|-------|-------------|
+| `10, 20, 30` | `10 20 30` | Remove commas |
+| `10,  20,   30` | `10 20 30` | Normalize spacing |
+
+---
+
+# Complete Cleanup Pipeline
+
+Here's a comprehensive cleanup workflow:
+
+```csharp
+public static SvgResult CleanupSvg(Svg svg)
+{
+    return svg.Query()
+        .RemoveEmptyNodes()          // Remove empty elements
+        .RemoveEmptyAttributes()     // Remove empty attributes
+        .RemoveEmptyText()           // Remove whitespace-only text
+        .RemoveEmptyContainers()     // Remove empty containers
+        .CollapseGroups()            // Remove unnecessary groups
+        .CleanupAttributes()         // Normalize attribute values
+        .Build();
+}
+
+// Usage
+var result = CleanupSvg(svg);
+result.SizeComparisonInPercentage(p => 
+    Console.WriteLine($"Cleanup saved {p:F1}%"));
+```
+
+# Advanced Cleanup Techniques
+
+## Selective Cleanup
+
+```csharp
+// Clean up everything except specific attributes
+var result = svg.Query()
+    .SelectAttributes(
+        key => key != "id" && key != "class", // Keep ID and class
+        (node, key, value) => {
+            if (string.IsNullOrWhiteSpace(value)) {
+                node.RemoveAttribute(key);
+            }
+        }
+    )
+    .RemoveEmptyNodes()
+    .CollapseGroups()
+    .Build();
+```
+
+## Conditional Cleanup
+
+```csharp
+public static SvgResult SmartCleanup(Svg svg)
+{
+    var builder = svg.Query();
+    
+    // Always do basic cleanup
+    builder.RemoveEmptyAttributes()
+           .RemoveEmptyText();
+    
+    // Check if we have many groups
+    var groupCount = svg.Query()
+        .Select(n => n.Name == "g")
+        .ToList()
+        .Count;
+    
+    if (groupCount > 3)
+    {
+        // Many groups - be aggressive about collapsing
+        builder.CollapseGroups();
+    }
+    
+    // Always clean up at the end
+    builder.RemoveEmptyNodes()
+           .CleanupAttributes();
+    
+    return builder.Build();
+}
+```
+
+## Preserve Important Elements
+
+```csharp
+// Cleanup while preserving accessibility and semantic elements
+var result = svg.Query()
+    .Select(node => {
+        // Don't remove nodes with accessibility attributes
+        if (node.Attributes.ContainsKey("aria-label") ||
+            node.Attributes.ContainsKey("role") ||
+            node.Attributes.ContainsKey("title"))
+        {
+            return false; // Don't select for removal
+        }
+        return true; // Can be cleaned up
+    })
+    .RemoveEmptyNodes()
+    .RemoveEmptyAttributes()
+    .CollapseGroups()
+    .CleanupAttributes()
+    .Build();
+```
+
+## Cleanup Analysis
+
+```csharp
+public static void AnalyzeCleanupOpportunities(Svg svg)
+{
+    var nodes = svg.Query().Select(_ => true).ToList();
+    
+    var emptyGroups = nodes.Count(n => n.Name == "g" && !n.Children.Any());
+    var emptyAttributes = nodes.Sum(n => n.Attributes.Count(attr => string.IsNullOrWhiteSpace(attr.Value)));
+    var nestedGroups = nodes.Count(n => n.Name == "g" && n.Parent?.Name == "g");
+    
+    Console.WriteLine($"Cleanup opportunities:");
+    Console.WriteLine($"- Empty groups: {emptyGroups}");
+    Console.WriteLine($"- Empty attributes: {emptyAttributes}");
+    Console.WriteLine($"- Nested groups: {nestedGroups}");
+    
+    if (emptyGroups + emptyAttributes + nestedGroups > 0)
+    {
+        Console.WriteLine("Consider running cleanup operations");
+    }
+}
+```
+
+Cleanup operations are essential for removing the cruft that accumulates in SVG files, especially those exported from design tools or generated programmatically.

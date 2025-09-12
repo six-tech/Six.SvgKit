@@ -1,0 +1,64 @@
+---
+title: Format Conversion
+description: Convert SVG files to various bitmap formats (PNG, WebP, JPEG) with different sizes and quality settings.
+---
+
+# Introduction
+
+Convert SVG files to various bitmap formats using ImageMagick integration.
+
+# Convert SVG to Bitmap Formats
+
+```csharp
+using Six.SvgKit;
+using ImageMagick;
+
+var svg = Svg.FromFile("icon.svg");
+
+// Convert to different formats and sizes
+svg.ToBitmapFile(MagickFormat.Png24, "icon-256.png", 256, 256);
+svg.ToBitmapFile(MagickFormat.Png24, "icon-128.png", 128, 128);
+svg.ToBitmapFile(MagickFormat.Png24, "icon-64.png", 64, 64);
+svg.ToBitmapFile(MagickFormat.Png24, "icon-32.png", 32, 32);
+
+// Convert to WebP for web use
+svg.ToBitmapFile(MagickFormat.WebP, "icon.webp", 256, 256);
+
+// Convert to JPEG (with background)
+svg.ToBitmapFile(MagickFormat.Jpeg, "icon.jpg", 256, 256);
+```
+
+# Generate Icon Set from SVG
+
+```csharp
+public static void GenerateIconSet(string svgPath, string outputDir)
+{
+    var svg = Svg.FromFile(svgPath)
+        .Query()
+        .MonoIconsOptimizations()
+        .Build()
+        .ModifiedSvg;
+    
+    var sizes = new[] { 16, 24, 32, 48, 64, 128, 256, 512 };
+    var formats = new[]
+    {
+        (MagickFormat.Png24, "png"),
+        (MagickFormat.WebP, "webp")
+    };
+    
+    Directory.CreateDirectory(outputDir);
+    
+    foreach (var size in sizes)
+    {
+        foreach (var (format, extension) in formats)
+        {
+            var filename = $"icon-{size}x{size}.{extension}";
+            var outputPath = Path.Combine(outputDir, filename);
+            svg.ToBitmapFile(format, outputPath, size, size);
+        }
+    }
+    
+    // Also save the optimized SVG
+    svg.ToSvgFile(Path.Combine(outputDir, "icon.svg"));
+}
+```
