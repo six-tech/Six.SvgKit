@@ -18,5 +18,6 @@
     <File Path="global.json" />
     <File Path="nuget.config" />
     <File Path="docs\astro.config.mjs" />
+    <File Path="init.cs" />
   </Folder>
 </Solution>

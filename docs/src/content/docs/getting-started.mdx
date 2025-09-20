@@ -1,27 +1,70 @@
 ---
-title: Getting Started with Six.SvgKit
-description: Learn how to install and start using Six.SvgKit in your .NET projects with step-by-step instructions and basic examples.
+title: Getting Started with Six SvgKit
+description: Learn how to install and start using Six SvgKit in your .NET projects with step-by-step instructions and basic examples.
 ---
 
 import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 
 # Introduction
 
-This guide will help you get up and running with Six.SvgKit in your .NET projects. Whether you're building a web application, desktop app, or console utility, Six.SvgKit provides the tools you need to work with SVG files effectively.
+This guide will help you get up and running with **Six SvgKit** in your .NET projects. Whether you're building a web 
+application, desktop app, or console utility, **Six SvgKit** provides the tools you need to work with SVG files 
+effectively.
 
-# Prerequisites
+## Prerequisites
 
-Before you begin, ensure you have:
+Before running the setup, ensure you have the following tools installed:
 
-- **.NET 9.0 or later**: Six.SvgKit targets .NET 9.0 for optimal performance
-- **Visual Studio 2022** or **JetBrains Rider** (recommended IDEs)
-- **Basic C# knowledge**: Familiarity with C# and .NET development
+<CardGrid>
+
+<Card title="🔧 .NET 10 SDK" icon="download">
+### Required Tool
+- **Download**: [dotnet.microsoft.com/download](https://dotnet.microsoft.com/download)
+- **Purpose**: Builds and runs .NET projects, executes C# scripts
+- **Verification**: Run `dotnet --version` to check installation
+</Card>
+
+<Card title="📦 Package Managers" icon="npm">
+### Choose One
+#### pnpm (Recommended)
+- **Install**: `npm install -g pnpm`
+- **Advantages**: Faster, disk-efficient, better dependency management
+- **Website**: [pnpm.io](https://pnpm.io/)
+
+#### npm (Alternative)
+- **Included with**: [Node.js](https://nodejs.org/)
+- **Verification**: Run `npm --version` to check installation
+</Card>
+
+</CardGrid>
+
+
+## Six Solution Template
+
+![Hero Image](../../assets/six-solution-hero-banner.png)
+
+**Six SvgKit** has been built using [**Six Solution Template**](https://six-tech.github.io/Six.SolutionTemplate/six/introduction/), 
+which provides a standardized project structure, AI helpers, built-in in-repository documentation, development 
+scripts, and more.
+
+If you are modifying the code of this library or using it from the source, please explore the features and structure of 
+the template before proceeding:
+
+- [Standardized project structure](https://six-tech.github.io/Six.SolutionTemplate/six/structure/) for libraries, applications, tests, and benchmarks
+- [Hierarchical configuration management](https://six-tech.github.io/Six.SolutionTemplate/six/structure/str-configuration/) with sensible defaults
+- [C#-based development scripts](https://six-tech.github.io/Six.SolutionTemplate/six/scripts/) for cross-platform automation (testing, packaging, and publishing)
+- [Cursor and Kiro rules](https://six-tech.github.io/Six.SolutionTemplate/six/ai/introduction/) for AI assistance
+- [In-Repository Documentation](https://six-tech.github.io/Six.SolutionTemplate/six/project-documentation/setting-up-documentation/)
+- [Automatic deployment](https://six-tech.github.io/Six.SolutionTemplate/six/github-workflow-integration/) of documentation to GitHub Pages
+
+
+Please explore the whole [feature-set here](https://six-tech.github.io/Six.SolutionTemplate/six/introduction/)
 
 # Installation
 
-Six.SvgKit is distributed as two NuGet packages. Install the packages that match your needs:
+**Six SvgKit** is distributed as two NuGet packages. Install the packages that match your needs:
 
-### Core Library Only
+## Core Library Only
 
 If you only need basic SVG parsing and manipulation:
 
@@ -43,7 +86,7 @@ If you only need basic SVG parsing and manipulation:
   </TabItem>
 </Tabs>
 
-### With Optimization Extensions
+## With Optimization Extensions
 
 For advanced optimization features (recommended):
 
@@ -72,14 +115,14 @@ For advanced optimization features (recommended):
 
 Let's start with a simple example that demonstrates the basic workflow of Six.SvgKit:
 
-### 1. Import Namespaces
+## 1. Import Namespaces
 
 ```csharp
 using Six.SvgKit;
 using Six.SvgKit.Optimizer; // If using optimization features
 ```
 
-### 2. Load an SVG
+## 2. Load an SVG
 
 You can load SVG content from a file or string:
 
@@ -94,7 +137,7 @@ var svgString = @"<svg xmlns=""http://www.w3.org/2000/svg"" width=""24"" height=
 var svg = Svg.FromString(svgString);
 ```
 
-### 3. Basic Operations
+## 3. Basic Operations
 
 ```csharp
 // Get the SVG as a string
@@ -107,7 +150,7 @@ svg.ToSvgFile("output.svg");
 byte[] svgBytes = svg.ToBytes();
 ```
 
-### 4. Apply Optimizations
+## 4. Apply Optimizations
 
 ```csharp
 // Apply basic optimizations
@@ -146,7 +189,7 @@ Understanding these key concepts will help you work effectively with Six.SvgKit:
 
 Six.SvgKit provides several configuration options to customize its behavior:
 
-### Output Compression
+## Output Compression
 
 Control how SVG output is formatted:
 
@@ -162,7 +205,7 @@ svg.OmmitXmlDeclaration = true;
 string compressedSvg = svg.ToSvg();
 ```
 
-### Metadata Tracking
+## Metadata Tracking
 
 Add metadata to track SVG instances during batch processing:
 
@@ -183,7 +226,7 @@ Now that you have Six.SvgKit installed and understand the basics, explore these 
 
 # Troubleshooting
 
-### Common Issues
+## Common Issues
 
 **Package Not Found**
 - Ensure you're using the correct package source
@@ -197,7 +240,7 @@ Now that you have Six.SvgKit installed and understand the basics, explore these 
 - Use parallel processing for batch operations
 - Consider using optimization presets for common scenarios
 
-### Getting Help
+## Getting Help
 
 If you encounter issues or have questions:
 

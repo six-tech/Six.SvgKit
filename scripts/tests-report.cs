@@ -1,4 +1,7 @@
 #!/usr/bin/env dotnet
+#:sdk Microsoft.NET.Sdk
+#:property LangVersion 13
+
 #:package CliWrap@3.6.6
 #:package Spectre.Console@0.49.1
 #:package ReportGenerator@5.3.11

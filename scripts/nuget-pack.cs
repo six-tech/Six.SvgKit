@@ -1,4 +1,7 @@
 #!/usr/bin/env dotnet
+#:sdk Microsoft.NET.Sdk
+#:property LangVersion 13
+
 #:package CliWrap@3.6.6
 #:package Spectre.Console@0.49.1
 
@@ -30,6 +33,7 @@ var ignoredProjects = new List<string>
 };
 
 var buildConfig = args.Contains("--debug") ? "Debug" : "Release";
+var includeSymbols = !args.Contains("--no-symbols"); // Include symbols by default, opt-out with --no-symbols
 var publishMode = GetPublishMode(args);
 
 // Environment variables
@@ -81,7 +85,7 @@ await AnsiConsole.Status()
             // Report packed projects
             ReportPackedProjects(packResults);
 
-            // Publish if not local-only
+            // Publish packages to target feed
             List<PublishResult> publishResults = new();
             if (publishMode == PublishMode.Local)
             {
@@ -91,10 +95,10 @@ await AnsiConsole.Status()
             }
             else
             {
-              // GET
-              var feedData = GetFeedData();
-              
-                ctx.Status("Publishing packages to remote feed...");
+                // Get remote feed configuration
+                var feedData = GetFeedData();
+                
+                ctx.Status($"Publishing packages to {publishMode.ToString().ToLower()} feed...");
                 publishResults = await PublishPackagesAsync(packResults, publishMode, feedData.Url, feedData.Pat, outputDir);
                 ReportPublishedProjects(publishResults);
             }
@@ -103,14 +107,14 @@ await AnsiConsole.Status()
             ctx.Status("Generating summary...");
             DisplaySummary(packResults, publishResults, publishMode, outputDir);
             
-            // Cleanup packages directory after successful publishing
-            if (publishResults.Any(r => r.Success) && Directory.Exists(outputDir))
+            // Always cleanup packages directory (it's temporary)
+            if (Directory.Exists(outputDir))
             {
-                ctx.Status("Cleaning up...");
+                ctx.Status("Cleaning up temporary packages directory...");
                 try
                 {
                     Directory.Delete(outputDir, true);
-                    AnsiConsole.MarkupLine("[dim]Cleaned up temporary packages directory[/]");
+                    AnsiConsole.MarkupLine("[dim]✓ Cleaned up temporary packages directory[/]");
                 }
                 catch (Exception ex)
                 {
@@ -185,16 +189,19 @@ void ValidateEnvironment()
   switch (publishMode)
   {
     case PublishMode.Local:
-      return (localFeedUrl, string.Empty);
+      return (localFeedUrl ?? throw new InvalidOperationException("Local feed URL is null"), string.Empty);
         
     case PublishMode.Development:
-      return (devFeedUrl, devFeedPat);
+      return (devFeedUrl ?? throw new InvalidOperationException("Development feed URL is null"), 
+              devFeedPat ?? throw new InvalidOperationException("Development feed PAT is null"));
         
     case PublishMode.Staging:
-      return (stagingFeedUrl, stagingFeedPat);
+      return (stagingFeedUrl ?? throw new InvalidOperationException("Staging feed URL is null"), 
+              stagingFeedPat ?? throw new InvalidOperationException("Staging feed PAT is null"));
         
     case PublishMode.Production:
-      return (productionFeedUrl, productionFeedPat);
+      return (productionFeedUrl ?? throw new InvalidOperationException("Production feed URL is null"), 
+              productionFeedPat ?? throw new InvalidOperationException("Production feed PAT is null"));
         
     default:
       throw new InvalidOperationException($"Unknown publish mode: {publishMode}");
@@ -263,12 +270,16 @@ async Task<List<PackResult>> BuildAndPackProjectsAsync(List<string> projects, st
                 continue;
             }
 
-            // Pack - always create symbols for proper remote publishing
+            // Pack with or without symbols based on argument
             var packOutput = new StringBuilder();
             var packError = new StringBuilder();
             
+            var packArgs = includeSymbols 
+                ? $"pack \"{project}\" -c {config} -o \"{outputDir}\" --no-build --include-symbols -p:SymbolPackageFormat=snupkg --verbosity normal"
+                : $"pack \"{project}\" -c {config} -o \"{outputDir}\" --no-build --verbosity normal";
+            
             var packResult = await Cli.Wrap("dotnet")
-                .WithArguments($"pack \"{project}\" -c {config} -o \"{outputDir}\" --no-build --include-symbols -p:SymbolPackageFormat=snupkg --verbosity normal")
+                .WithArguments(packArgs)
                 .WithValidation(CommandResultValidation.None)
                 .WithStandardOutputPipe(PipeTarget.ToStringBuilder(packOutput))
                 .WithStandardErrorPipe(PipeTarget.ToStringBuilder(packError))
@@ -306,26 +317,49 @@ Task<List<PublishResult>> CopyPackagesToLocalFeedAsync(List<PackResult> packResu
     {
         try
         {
-            // Find all package files for this project (.nupkg and .snupkg)
-            var packageFiles = Directory.GetFiles(outputDir, $"{pack.ProjectName}*.*nupkg")
+            // Find .nupkg files for this project (consistent with remote publishing logic)
+            var packageFiles = Directory.GetFiles(outputDir, $"{pack.ProjectName}*.nupkg")
+                .Where(f => !f.EndsWith(".snupkg"))
                 .OrderByDescending(f => File.GetLastWriteTime(f))
                 .ToArray();
 
             if (packageFiles.Length == 0)
             {
-                results.Add(new PublishResult(pack.ProjectName, false, "No package files found"));
+                results.Add(new PublishResult(pack.ProjectName, false, "No .nupkg files found"));
                 continue;
             }
 
-            // Copy all package files to local feed
-            foreach (var packageFile in packageFiles)
+            var latestNugetPackage = packageFiles[0];
+            var packageBaseName = Path.GetFileNameWithoutExtension(latestNugetPackage);
+            
+            // Find corresponding .snupkg files
+            var snupkgFiles = Directory.GetFiles(outputDir, $"{pack.ProjectName}*.snupkg")
+                .Where(f => Path.GetFileNameWithoutExtension(f) == packageBaseName)
+                .OrderByDescending(f => File.GetLastWriteTime(f))
+                .ToArray();
+
+            // Copy main package file
+            var mainFileName = Path.GetFileName(latestNugetPackage);
+            var mainDestPath = Path.Combine(localFeedPath, mainFileName);
+            File.Copy(latestNugetPackage, mainDestPath, true);
+            
+            var copiedFiles = 1;
+            
+            // Copy symbols package if it exists
+            if (snupkgFiles.Length > 0)
             {
-                var fileName = Path.GetFileName(packageFile);
-                var destPath = Path.Combine(localFeedPath, fileName);
-                File.Copy(packageFile, destPath, true);
+                var latestSnupkgFile = snupkgFiles[0];
+                var symbolFileName = Path.GetFileName(latestSnupkgFile);
+                var symbolDestPath = Path.Combine(localFeedPath, symbolFileName);
+                File.Copy(latestSnupkgFile, symbolDestPath, true);
+                copiedFiles++;
             }
 
-            results.Add(new PublishResult(pack.ProjectName, true, $"Copied to {localFeedPath}"));
+            var message = copiedFiles == 1 
+                ? $"Copied package to {localFeedPath}" 
+                : $"Copied package and symbols to {localFeedPath}";
+                
+            results.Add(new PublishResult(pack.ProjectName, true, message));
         }
         catch (Exception ex)
         {
@@ -526,7 +560,7 @@ void DisplaySummary(List<PackResult> packResults, List<PublishResult> publishRes
     AnsiConsole.Write(panel);
     
     AnsiConsole.WriteLine();
-    AnsiConsole.Write(new Text("Usage: dotnet run build/nuget-pack.cs [--debug] [--local|--dev/development|--staging|--prod/production] (default: --local)", new Style(Color.Grey)));
+    AnsiConsole.Write(new Text("Usage: dotnet run scripts/nuget-pack.cs [--debug] [--no-symbols] [--local|--dev/development|--staging|--prod/production] (default: --local, symbols included)", new Style(Color.Grey)));
     AnsiConsole.WriteLine();
 }
 
